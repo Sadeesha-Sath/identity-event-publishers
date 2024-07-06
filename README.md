@@ -1,2 +1,2 @@
 # identity-event-publishers
-This is to maintain Identity-Event-Publishers that support multiple publishers based on requirements. This modular design will allow us to onboard additional publishers as needed, ensuring adaptability to diverse publishing requirements.
+This is to maintain a set of output event adapters which do not depend on Siddhi event stream techniques.

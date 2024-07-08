@@ -42,14 +42,15 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
     private String webSubHubBaseUrl = null;
 
     @Override
-    public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext, String eventUri)
+    public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws WebSubAdapterException {
 
-        log.info("Event published with new generic component.");
         if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
-            WebSubHubAdapterUtil.makeAsyncAPICall(eventPayload, eventContext, constructHubTopic(eventUri,
-                            eventContext.getTenantDomain()),
-                    getWebSubBaseURL());
+            WebSubHubAdapterUtil.makeAsyncAPICall(eventPayload, eventContext,
+                    constructHubTopic(eventContext.getEventUri(), eventContext.getTenantDomain()), getWebSubBaseURL());
+            if (log.isDebugEnabled()) {
+                log.debug("Event published successfully to the WebSub Hub.");
+            }
         } else {
             log.warn("Event cannot be published, WebSub Hub Adapter is not enabled.");
             throw WebSubHubAdapterUtil.handleClientException(WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_HUB_ADAPTER_DISABLED);
@@ -60,7 +61,12 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
 
         if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
             try {
-                WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain), getWebSubBaseURL(), WebSubHubAdapterConstants.REGISTER);
+                WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain), getWebSubBaseURL(),
+                        WebSubHubAdapterConstants.REGISTER);
+                if (log.isDebugEnabled()) {
+                    log.debug("WebSub Hub Topic registered successfully for the event: " + eventUri + " in tenant: " +
+                            tenantDomain);
+                }
             } catch (IOException e) {
                 throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_REGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
             }

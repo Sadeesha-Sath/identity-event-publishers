@@ -24,8 +24,6 @@ package org.wso2.identity.event.websubhub.publisher.constant;
 public class WebSubHubAdapterConstants {
 
     public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
-    public static final String AUDIENCE_BASE_URL = "https://websubhub/topics/";
-    public static final String URL_SEPARATOR = "/";
     public static final String TOPIC_SEPARATOR = "-";
     public static final String URL_PARAM_SEPARATOR = "&";
     public static final String URL_KEY_VALUE_SEPARATOR = "=";

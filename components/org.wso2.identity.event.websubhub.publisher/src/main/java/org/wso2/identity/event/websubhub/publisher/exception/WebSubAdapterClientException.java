@@ -23,11 +23,6 @@ package org.wso2.identity.event.websubhub.publisher.exception;
  */
 public class WebSubAdapterClientException extends WebSubAdapterException {
 
-    public WebSubAdapterClientException(String message, String errorCode) {
-
-        super(message, errorCode);
-    }
-
     public WebSubAdapterClientException(String message, String description, String errorCode) {
 
         super(message, description, errorCode);

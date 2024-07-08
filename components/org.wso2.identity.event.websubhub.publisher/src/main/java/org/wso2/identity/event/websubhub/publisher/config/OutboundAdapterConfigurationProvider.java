@@ -22,7 +22,6 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.identity.event.common.publisher.exception.AdapterConfigurationException;
-import org.wso2.identity.event.common.publisher.exception.AdapterRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,34 +44,11 @@ import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdap
  */
 public class OutboundAdapterConfigurationProvider {
 
-    private static final OutboundAdapterConfigurationProvider instance;
-
-    static {
-        try {
-            instance = new OutboundAdapterConfigurationProvider();
-        } catch (AdapterConfigurationException e) {
-            throw new AdapterRuntimeException("Error initializing outbound adapter configuration provider.", e);
-        }
-    }
-
     private final Properties adapterProperties;
 
-    private OutboundAdapterConfigurationProvider() throws AdapterConfigurationException {
+    public OutboundAdapterConfigurationProvider() throws AdapterConfigurationException {
 
         adapterProperties = this.loadProperties();
-    }
-
-    /**
-     * Returns the singleton instance of the {@link OutboundAdapterConfigurationProvider}.
-     *
-     * @return instance of {@link OutboundAdapterConfigurationProvider}.
-     * @throws AdapterConfigurationException when instance is null.
-     */
-    public static OutboundAdapterConfigurationProvider getInstance() throws AdapterConfigurationException {
-
-        //Adding this as a secondary check, since object should be initialized at the class loading.
-        return ofNullable(instance).orElseThrow(
-                () -> new AdapterConfigurationException("Outbound adapter configuration instance is not initialized."));
     }
 
     @SuppressWarnings("PATH_TRAVERSAL_IN")

@@ -31,8 +31,7 @@ public interface EventPublisher {
      *
      * @param payload      Event payload.
      * @param eventContext  Event Context.
-     * @param eventUri     URI of the event.
      * @throws Exception
      */
-    void publish(SecurityEventTokenPayload payload, EventContext eventContext, String eventUri) throws Exception;
+    void publish(SecurityEventTokenPayload payload, EventContext eventContext) throws Exception;
 }

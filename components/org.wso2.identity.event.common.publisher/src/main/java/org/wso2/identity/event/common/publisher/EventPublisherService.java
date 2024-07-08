@@ -46,10 +46,9 @@ public class EventPublisherService {
                 EventPublisherDataHolder.getInstance().getEventPublishers();
         for (EventPublisher eventPublisher : eventPublishers) {
             if (log.isDebugEnabled()) {
-                log.debug("Publishing event to the event publisher: " + eventPublisher.getClass().getName() + " for " +
-                        "tenant domain: " + eventContext.getTenantDomain() + " and event URI: " + eventContext.getEventUri());
+                log.debug("Invoking registered event publisher: " + eventPublisher.getClass().getName());
             }
-            eventPublisher.publish(eventPayload, eventContext, eventContext.getEventUri());
+            eventPublisher.publish(eventPayload, eventContext);
         }
     }
 }

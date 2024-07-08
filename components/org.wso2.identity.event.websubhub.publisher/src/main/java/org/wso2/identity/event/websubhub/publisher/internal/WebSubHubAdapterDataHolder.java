@@ -19,7 +19,6 @@
 package org.wso2.identity.event.websubhub.publisher.internal;
 
 import com.nimbusds.jose.util.DefaultResourceRetriever;
-import org.wso2.identity.event.websubhub.publisher.config.OutboundAdapterConfigurationProvider;
 import org.wso2.identity.event.websubhub.publisher.config.WebSubAdapterConfiguration;
 
 import java.security.KeyStore;
@@ -34,7 +33,6 @@ public class WebSubHubAdapterDataHolder {
     private KeyStore trustStore;
     private WebSubAdapterConfiguration adapterConfiguration;
     private DefaultResourceRetriever resourceRetriever;
-    private OutboundAdapterConfigurationProvider outboundAdapterConfigurationProvider;
 
     private WebSubHubAdapterDataHolder() {
 
@@ -83,15 +81,5 @@ public class WebSubHubAdapterDataHolder {
     public void setResourceRetriever(DefaultResourceRetriever resourceRetriever) {
 
         this.resourceRetriever = resourceRetriever;
-    }
-
-    public OutboundAdapterConfigurationProvider getOutboundAdapterConfigurationProvider() {
-
-        return outboundAdapterConfigurationProvider;
-    }
-
-    public void setOutboundAdapterConfigurationProvider(OutboundAdapterConfigurationProvider outboundAdapterConfigurationProvider) {
-
-        this.outboundAdapterConfigurationProvider = outboundAdapterConfigurationProvider;
     }
 }

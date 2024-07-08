@@ -45,10 +45,19 @@ import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdap
 public class OutboundAdapterConfigurationProvider {
 
     private final Properties adapterProperties;
+    private static OutboundAdapterConfigurationProvider instance;
 
-    public OutboundAdapterConfigurationProvider() throws AdapterConfigurationException {
+    private OutboundAdapterConfigurationProvider() throws AdapterConfigurationException {
 
         adapterProperties = this.loadProperties();
+    }
+
+    public static OutboundAdapterConfigurationProvider getInstance() throws AdapterConfigurationException {
+
+        if (instance == null) {
+            instance = new OutboundAdapterConfigurationProvider();
+        }
+        return instance;
     }
 
     @SuppressWarnings("PATH_TRAVERSAL_IN")

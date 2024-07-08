@@ -107,7 +107,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.identity.event.common.publisher.internal,
+                            org.wso2.identity.event.common.publisher.internal
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.identity.event.common.publisher.internal,
@@ -118,7 +118,7 @@
                             org.apache.commons.collections.*; version="${commons-collections.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

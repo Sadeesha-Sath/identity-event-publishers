@@ -47,10 +47,8 @@ public class WebSubHubAdapterServiceComponent {
             WebSubHubAdapterServiceImpl webSubHubEventAdapter = new WebSubHubAdapterServiceImpl();
             context.getBundleContext().registerService(EventPublisher.class.getName(),
                     webSubHubEventAdapter, null);
-            WebSubHubAdapterDataHolder.getInstance().setOutboundAdapterConfigurationProvider
-                    (new OutboundAdapterConfigurationProvider());
             WebSubHubAdapterDataHolder.getInstance().setAdapterConfiguration(new WebSubAdapterConfiguration(
-                    WebSubHubAdapterDataHolder.getInstance().getOutboundAdapterConfigurationProvider()));
+                    OutboundAdapterConfigurationProvider.getInstance()));
             WebSubHubAdapterDataHolder.getInstance().setClientManager(new ClientManager());
             WebSubHubAdapterDataHolder.getInstance().setResourceRetriever(new DefaultResourceRetriever());
             if (log.isDebugEnabled()) {

@@ -37,12 +37,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.MDC;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.identity.event.common.publisher.model.EventContext;
 import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
@@ -71,13 +67,11 @@ import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdap
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_INVALID_WEB_SUB_HUB_BASE_URL;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_INVALID_WEB_SUB_OPERATION;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_PUBLISHING_EVENT_INVALID_PAYLOAD;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_RETRIEVING_ENCRYPTION_PUBLIC_KEY;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.TOPIC_DEREGISTRATION_FAILURE_ACTIVE_SUBS;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_ACTIVE_SUBS;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_MODE;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_REASON;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_TOPIC;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.PAYLOAD_EVENT_JSON_KEY;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.PUBLISH;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.REGISTER;
 import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.RESPONSE_FOR_SUCCESSFUL_OPERATION;
@@ -118,23 +112,8 @@ public class WebSubHubAdapterUtil {
         String jsonString;
         try {
             jsonString = mapper.writeValueAsString(eventPayload);
-            // Encrypt the event object in the payload.
-            if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isEncryptionEnabled()) {
-                JSONParser jsonParser = new JSONParser();
-                JSONObject payloadJSON = (JSONObject) jsonParser.parse(jsonString);
-                payloadJSON.put(PAYLOAD_EVENT_JSON_KEY, EventPayloadCryptographyUtils.encryptEventPayload(
-                        payloadJSON.get(PAYLOAD_EVENT_JSON_KEY).toString(), eventContext.getTenantDomain()));
-                jsonString = payloadJSON.toString();
-            }
             request.setEntity(new StringEntity(jsonString));
-        } catch (IOException | IdentityEventException | ParseException e) {
-            if (e instanceof IdentityEventException) {
-                if (ERROR_RETRIEVING_ENCRYPTION_PUBLIC_KEY.getCode()
-                        .equals(((IdentityEventException) e).getErrorCode())) {
-                    // Break the flow and this exception need not to be passed and we have logged it at lower layer.
-                    return;
-                }
-            }
+        } catch (IOException e) {
             throw handleClientException(ERROR_PUBLISHING_EVENT_INVALID_PAYLOAD);
         }
 
@@ -186,11 +165,10 @@ public class WebSubHubAdapterUtil {
                         }
                     }
                 } else {
-                    log.error("WebHubSub event publisher received " + responseCode + " code.");
                     String errorResponseBody;
                     try {
                         errorResponseBody = EntityUtils.toString(response.getEntity());
-                        log.error("Response data: " + errorResponseBody);
+                        log.error("WebHubSub event publisher received " + responseCode + " code. Response data: " + errorResponseBody);
                     } catch (IOException e) {
                         log.error("Error while reading WebSubHub event publisher response. ", e);
                     }

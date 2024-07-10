@@ -44,6 +44,7 @@ public class WebSubHubAdapterServiceComponent {
     protected void activate(ComponentContext context) {
 
         try {
+            //TODO: Check isAdapterEnabled() method before service register
             WebSubHubAdapterServiceImpl webSubHubEventAdapter = new WebSubHubAdapterServiceImpl();
             context.getBundleContext().registerService(EventPublisher.class.getName(),
                     webSubHubEventAdapter, null);

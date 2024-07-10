@@ -22,18 +22,18 @@ package org.wso2.identity.event.common.publisher.model;
  * Model Class for Event Context.
  */
 public class EventContext {
-    private String tenantDomain;
-    private String eventUri;
+    private final String tenantDomain;
+    private final String eventUri;
 
-    public EventContext() {}
+    private EventContext(Builder builder) {
+
+        this.tenantDomain = builder.tenantDomain;
+        this.eventUri = builder.eventUri;
+    }
 
     public String getTenantDomain() {
 
         return tenantDomain;
-    }
-
-    public void setTenantDomain(String tenantDomain) {
-        this.tenantDomain = tenantDomain;
     }
 
     public String getEventUri() {
@@ -41,9 +41,32 @@ public class EventContext {
         return eventUri;
     }
 
-    public void setEventUri(String eventUri) {
+    public static Builder builder() {
 
-        this.eventUri = eventUri;
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String tenantDomain;
+        private String eventUri;
+
+        public Builder() {}
+
+        public Builder tenantDomain(String tenantDomain) {
+
+            this.tenantDomain = tenantDomain;
+            return this;
+        }
+
+        public Builder eventUri(String eventUri) {
+
+            this.eventUri = eventUri;
+            return this;
+        }
+
+        public EventContext build() {
+
+            return new EventContext(this);
+        }
     }
 }
-

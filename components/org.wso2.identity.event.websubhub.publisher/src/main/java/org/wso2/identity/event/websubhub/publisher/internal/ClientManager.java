@@ -56,13 +56,13 @@ public class ClientManager {
      * @throws WebSubAdapterException on errors while creating the http client.
      */
     public ClientManager() throws WebSubAdapterException {
+
         LOG.info("Initializing ClientManager");
         PoolingNHttpClientConnectionManager connectionManager;
         try {
             connectionManager = createPoolingConnectionManager();
             LOG.info("Successfully created PoolingNHttpClientConnectionManager");
         } catch (IOException e) {
-            LOG.error("Error while creating PoolingNHttpClientConnectionManager", e);
             throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);
         }
 
@@ -81,7 +81,7 @@ public class ClientManager {
      * @return CloseableHttpAsyncClient instance.
      */
     public CloseableHttpAsyncClient getClient() throws WebSubAdapterException {
-        LOG.info("Retrieving HTTP client");
+
         if (isNull(httpAsyncClient)) {
             LOG.error("HttpAsyncClient is null");
             throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_GETTING_ASYNC_CLIENT, null);
@@ -93,7 +93,7 @@ public class ClientManager {
     }
 
     private RequestConfig createRequestConfig() {
-        LOG.info("Creating RequestConfig");
+
         return RequestConfig.custom()
                 .setConnectTimeout(WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration()
                         .getHTTPConnectionTimeout())
@@ -107,7 +107,7 @@ public class ClientManager {
     }
 
     private PoolingNHttpClientConnectionManager createPoolingConnectionManager() throws IOException {
-        LOG.info("Creating PoolingNHttpClientConnectionManager");
+
         int maxConnections = WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration()
                 .getDefaultMaxConnections();
         int maxConnectionsPerRoute = WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration()
@@ -120,22 +120,27 @@ public class ClientManager {
         poolingHttpClientConnectionMgr.setMaxTotal(maxConnections);
         // Increase default max connection per route to 20.
         poolingHttpClientConnectionMgr.setDefaultMaxPerRoute(maxConnectionsPerRoute);
-        LOG.info("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections + " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections +
+                    " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
+        }
         return poolingHttpClientConnectionMgr;
     }
 
     private void addSslContext(HttpAsyncClientBuilder builder) throws WebSubAdapterException {
-        LOG.info("Adding SSL context");
+
         try {
             SSLContext sslContext = SSLContexts.custom()
+            //default trust strategy is used (trusting all certificates in the provided trust store).
                     .loadTrustMaterial(WebSubHubAdapterDataHolder.getInstance().getTrustStore(), null)
                     .build();
             builder.setSSLContext(sslContext);
             builder.setSSLHostnameVerifier(new DefaultHostnameVerifier());
-            LOG.info("SSL context and hostname verifier added");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("SSL context and hostname verifier added");
+            }
 
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-            LOG.error("Error while creating SSL context", e);
             throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_SSL_CONTEXT, e);
         }
     }

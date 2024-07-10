@@ -31,8 +31,6 @@ import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterExcept
 
 import java.io.IOException;
 
-import static org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil.handleServerException;
-
 /**
  * OSGi service for publishing events using web sub hub.
  */

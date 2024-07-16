@@ -72,6 +72,8 @@ public class OutboundAdapterConfigurationProvider {
             properties.load(inputStream);
         } catch (IOException e) {
             throw new AdapterConfigurationException("Error while retrieving the configuration file.", e);
+        } catch (SecurityException e) {
+            throw new AdapterConfigurationException("Permission denied while accessing the configuration file.", e);
         }
 
         return properties;

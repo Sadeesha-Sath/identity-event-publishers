@@ -52,29 +52,41 @@ public class WebSubAdapterConfiguration {
     public WebSubAdapterConfiguration(OutboundAdapterConfigurationProvider configurationProvider)
             throws WebSubAdapterException {
 
-        this.adapterEnabled =
-                configurationProvider.getProperty(ADAPTER_ENABLED_CONFIG).map(Boolean::parseBoolean).orElse(false);
+        this.adapterEnabled = Boolean.parseBoolean(
+                configurationProvider.getProperty(ADAPTER_ENABLED_CONFIG));
+
         if (this.adapterEnabled) {
             // If adapter is enabled, The base URL is mandatory to be configured.
-            this.webSubHubBaseUrl = configurationProvider.getProperty(ADAPTER_HUB_URL_CONFIG)
-                    .orElseThrow(() -> WebSubHubAdapterUtil.handleClientException(WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_BASE_URL_NOT_CONFIGURED));
+            this.webSubHubBaseUrl = configurationProvider.getProperty(ADAPTER_HUB_URL_CONFIG);
+            if (this.webSubHubBaseUrl == null) {
+                throw WebSubHubAdapterUtil.handleClientException(
+                        WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_BASE_URL_NOT_CONFIGURED);
+            }
         }
 
-        this.httpConnectionTimeout =
-                configurationProvider.getProperty(HTTP_CONNECTION_TIMEOUT).map(Integer::parseInt).orElse(
-                        WebSubHubAdapterConstants.DEFAULT_HTTP_CONNECTION_TIMEOUT);
-        this.httpReadTimeout =
-                configurationProvider.getProperty(HTTP_READ_TIMEOUT).map(Integer::parseInt)
-                        .orElse(WebSubHubAdapterConstants.DEFAULT_HTTP_READ_TIMEOUT);
-        this.httpConnectionRequestTimeout =
-                configurationProvider.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT).map(Integer::parseInt)
-                        .orElse(WebSubHubAdapterConstants.DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT);
-        this.defaultMaxConnections =
-                configurationProvider.getProperty(DEFAULT_MAX_CONNECTIONS).map(Integer::parseInt)
-                        .orElse(WebSubHubAdapterConstants.DEFAULT_HTTP_MAX_CONNECTIONS);
-        this.defaultMaxConnectionsPerRoute =
-                configurationProvider.getProperty(DEFAULT_MAX_CONNECTIONS_PER_ROUTE).map(Integer::parseInt)
-                        .orElse(WebSubHubAdapterConstants.DEFAULT_HTTP_MAX_CONNECTIONS_PER_ROUTE);
+        this.httpConnectionTimeout = parseIntOrDefault(
+                configurationProvider.getProperty(HTTP_CONNECTION_TIMEOUT),
+                WebSubHubAdapterConstants.Http.DEFAULT_HTTP_CONNECTION_TIMEOUT);
+        this.httpReadTimeout = parseIntOrDefault(
+                configurationProvider.getProperty(HTTP_READ_TIMEOUT),
+                WebSubHubAdapterConstants.Http.DEFAULT_HTTP_READ_TIMEOUT);
+        this.httpConnectionRequestTimeout = parseIntOrDefault(
+                configurationProvider.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT),
+                WebSubHubAdapterConstants.Http.DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT);
+        this.defaultMaxConnections = parseIntOrDefault(
+                configurationProvider.getProperty(DEFAULT_MAX_CONNECTIONS),
+                WebSubHubAdapterConstants.Http.DEFAULT_HTTP_MAX_CONNECTIONS);
+        this.defaultMaxConnectionsPerRoute = parseIntOrDefault(
+                configurationProvider.getProperty(DEFAULT_MAX_CONNECTIONS_PER_ROUTE),
+                WebSubHubAdapterConstants.Http.DEFAULT_HTTP_MAX_CONNECTIONS_PER_ROUTE);
+    }
+
+    private int parseIntOrDefault(String value, int defaultValue) {
+        try {
+            return value != null ? Integer.parseInt(value) : defaultValue;
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     /**

@@ -30,6 +30,7 @@ public class SecurityEventTokenPayload {
     private long iat;
     private String aud;
     private String txn;
+    private String rci;
     private Map<String, EventPayload> event;
 
     public String getIss() {
@@ -88,5 +89,13 @@ public class SecurityEventTokenPayload {
     public void setEvent(Map<String, EventPayload> event) {
 
         this.event = event;
+    }
+
+    public String getRci() {
+        return rci;
+    }
+
+    public void setRci(String rci) {
+        this.rci = rci;
     }
 }

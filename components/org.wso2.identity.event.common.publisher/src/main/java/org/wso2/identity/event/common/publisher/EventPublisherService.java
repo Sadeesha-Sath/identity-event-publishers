@@ -25,31 +25,43 @@ import org.wso2.identity.event.common.publisher.model.EventContext;
 import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Event Publisher Service.
  */
 public class EventPublisherService {
     private static final Log log = LogFactory.getLog(EventPublisherService.class);
+    private static final int THREAD_POOL_SIZE = 10; // Customize the thread pool size based on your needs
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
 
     /**
      * Publish the event to the event publishers.
      *
      * @param eventPayload  Security Event Token Payload.
      * @param eventContext  Event Context.
-     * @throws Exception    If an error occurred while publishing the event.
      */
-    public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
-            throws Exception {
+    public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext) {
 
         List<EventPublisher> eventPublishers =
                 EventPublisherDataHolder.getInstance().getEventPublishers();
+
         for (EventPublisher eventPublisher : eventPublishers) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invoking registered event publisher: " + eventPublisher.getClass().getName());
-            }
-            //TODO: Async Implementation
-            eventPublisher.publish(eventPayload, eventContext);
+            log.debug("Invoking registered event publisher: " + eventPublisher.getClass().getName());
+            CompletableFuture.runAsync(() -> {
+                try {
+                    eventPublisher.publish(eventPayload, eventContext);
+                } catch (Exception e) {
+                    log.error("Error while publishing event with publisher: " +
+                            eventPublisher.getClass().getName(), e);
+                }
+            }, executorService).exceptionally(ex -> {
+                log.error("Error occurred in async event publishing: " + ex.getMessage(), ex);
+                return null;
+            });
         }
     }
 }

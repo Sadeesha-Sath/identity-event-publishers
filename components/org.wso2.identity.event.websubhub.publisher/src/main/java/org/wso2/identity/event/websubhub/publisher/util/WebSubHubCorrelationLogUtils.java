@@ -28,7 +28,6 @@ import java.util.List;
 
 /**
  * This class contains the utility methods for adding correlation logs for websubhub publisher.
- * TODO: Replace this logger implementation with a generalized logger utility class in the carbon-kernel.
  */
 public class WebSubHubCorrelationLogUtils {
 

@@ -23,41 +23,40 @@ package org.wso2.identity.event.websubhub.publisher.constant;
  */
 public class WebSubHubAdapterConstants {
 
-    public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
-    public static final String TOPIC_SEPARATOR = "-";
-    public static final String URL_PARAM_SEPARATOR = "&";
-    public static final String URL_KEY_VALUE_SEPARATOR = "=";
-    public static final String PUBLISH = "publish";
-    public static final String HUB_MODE = "hub.mode";
-    public static final String HUB_TOPIC = "hub.topic";
-    public static final String HUB_REASON = "hub.reason";
-    public static final String HUB_ACTIVE_SUBS = "hub.active.subscribers";
-    public static final String REGISTER = "register";
-    public static final String DEREGISTER = "deregister";
-    public static final String ACCEPTED = "accepted";
-    public static final String RESPONSE_FOR_SUCCESSFUL_OPERATION = HUB_MODE + "=" + ACCEPTED;
-    public static final String ERROR_TOPIC_DEREG_FAILURE_ACTIVE_SUBS = "Topic %s could not be deregistered " +
-            "as there are active subscribers";
-    public static final String CORRELATION_ID_REQUEST_HEADER = "activityid";
-    public static final Integer DEFAULT_HTTP_CONNECTION_TIMEOUT = 300;
-    public static final Integer DEFAULT_HTTP_READ_TIMEOUT = 300;
-    public static final Integer DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
-    public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS = 20;
-    public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS_PER_ROUTE = 20;
-    // The default lifespan is 30 minutes.
-    private static final String WEB_SUB_ADAPTER_ERROR_CODE_PREFIX = "WEBSUB-";
-    public static final String PAYLOAD_EVENT_JSON_KEY = "event";
-
-    private WebSubHubAdapterConstants() {
-
+    // Configuration related constants
+    public static class Config {
+        public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
+        private Config() {}
     }
 
-    /**
-     * Error codes related to websub adapter.
-     */
-    public enum ErrorMessages {
+    // HTTP related constants
+    public static class Http {
+        public static final String TOPIC_SEPARATOR = "-";
+        public static final String URL_PARAM_SEPARATOR = "&";
+        public static final String URL_KEY_VALUE_SEPARATOR = "=";
+        public static final String PUBLISH = "publish";
+        public static final String HUB_MODE = "hub.mode";
+        public static final String HUB_TOPIC = "hub.topic";
+        public static final String HUB_REASON = "hub.reason";
+        public static final String HUB_ACTIVE_SUBS = "hub.active.subscribers";
+        public static final String REGISTER = "register";
+        public static final String DEREGISTER = "deregister";
+        public static final String ACCEPTED = "accepted";
+        public static final String RESPONSE_FOR_SUCCESSFUL_OPERATION = HUB_MODE + "=" + ACCEPTED;
+        public static final String ERROR_TOPIC_DEREG_FAILURE_ACTIVE_SUBS = "Topic %s could not be deregistered " +
+                "as there are active subscribers";
+        public static final String CORRELATION_ID_REQUEST_HEADER = "activityid";
+        public static final Integer DEFAULT_HTTP_CONNECTION_TIMEOUT = 300;
+        public static final Integer DEFAULT_HTTP_READ_TIMEOUT = 300;
+        public static final Integer DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
+        public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS = 20;
+        public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS_PER_ROUTE = 20;
+        private Http() {}
+    }
 
-        //client errors.
+    // Error message related constants
+    public enum ErrorMessages {
+        // client errors
         WEB_SUB_BASE_URL_NOT_CONFIGURED("60001", "WebSub Hub base URL is not configured.",
                 "WebSub Hub base URL is not configured."),
         ERROR_PUBLISHING_EVENT_INVALID_PAYLOAD("60002", "Invalid payload provided.",
@@ -76,7 +75,7 @@ public class WebSubHubAdapterConstants {
         WEB_SUB_HUB_ADAPTER_DISABLED("60010", "WebSub Hub adapter is disabled.",
                 "WebSub Hub adapter is disabled."),
 
-        //server errors.
+        // server errors
         ERROR_REGISTERING_HUB_TOPIC("65001", "Error registering WebSub Hub topic.",
                 "Server error encountered while registering the WebSub Hub topic: %s, tenant: %s."),
         ERROR_DEREGISTERING_HUB_TOPIC("65002", "Error de-registering WebSub Hub topic.",
@@ -96,64 +95,53 @@ public class WebSubHubAdapterConstants {
         TOPIC_DEREGISTRATION_FAILURE_ACTIVE_SUBS("65009", "Error occurred while de-registering topic", "Backend error" +
                 " received from WebSubHub while attempting to de-register topic: %s. Active subscribers: %s.");
 
+        private static final String WEB_SUB_ADAPTER_ERROR_CODE_PREFIX = "WEBSUB-";
         private final String code;
         private final String message;
         private final String description;
 
         ErrorMessages(String code, String message, String description) {
-
             this.code = code;
             this.message = message;
             this.description = description;
         }
 
         public String getCode() {
-
             return WEB_SUB_ADAPTER_ERROR_CODE_PREFIX + code;
         }
 
         public String getMessage() {
-
             return message;
         }
 
         public String getDescription() {
-
             return description;
         }
     }
 
-    /**
-     * Define logging constants.
-     */
+    // Logging constants
     public static class LogConstants {
 
-        private LogConstants() {
-        }
-        
+        private LogConstants() {}
+
         public static final String WEB_SUB_HUB_ADAPTER = "web-sub-hub-adapter";
 
-        /**
-         * Define action IDs for diagnostic logs.
-         */
         public static class ActionIDs {
 
-            private ActionIDs() {
-            }
+            private ActionIDs() {}
 
             public static final String PUBLISH_EVENT = "publish-event";
         }
 
-        /**
-         * Define common and reusable Input keys for diagnostic logs.
-         */
         public static class InputKeys {
 
-            private InputKeys() {
-            }
+            private InputKeys() {}
+
             public static final String URL = "url";
             public static final String TENANT_DOMAIN = "tenant domain";
             public static final String TOPIC = "topic";
         }
     }
+
+    private WebSubHubAdapterConstants() {}
 }

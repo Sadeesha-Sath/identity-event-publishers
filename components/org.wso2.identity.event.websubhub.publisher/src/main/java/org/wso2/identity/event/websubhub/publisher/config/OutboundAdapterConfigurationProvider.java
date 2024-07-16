@@ -19,7 +19,6 @@
 package org.wso2.identity.event.websubhub.publisher.config;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.identity.event.common.publisher.exception.AdapterConfigurationException;
 
@@ -31,13 +30,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Optional;
 import java.util.Properties;
 
 import static java.util.Objects.isNull;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.CONFIG_FILE_NAME;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Config.CONFIG_FILE_NAME;
 
 /**
  * Class to build the output adapter configurations.
@@ -71,13 +67,9 @@ public class OutboundAdapterConfigurationProvider {
             throw new AdapterConfigurationException(CONFIG_FILE_NAME + " configuration file doesn't exist.");
         }
 
-        FileChannel channel;
-        try {
-            channel = FileChannel.open(path, StandardOpenOption.READ);
-
-            try (InputStream inputStream = Channels.newInputStream(channel)) {
-                properties.load(inputStream);
-            }
+        try (FileChannel channel = FileChannel.open(path, StandardOpenOption.READ);
+             InputStream inputStream = Channels.newInputStream(channel)) {
+            properties.load(inputStream);
         } catch (IOException e) {
             throw new AdapterConfigurationException("Error while retrieving the configuration file.", e);
         }
@@ -86,14 +78,17 @@ public class OutboundAdapterConfigurationProvider {
     }
 
     /**
-     * Returns the {@link Optional} value of the property provided.
+     * Returns the value of the property provided.
      *
      * @param propertyName name of the config property.
-     * @return Optional value of the property provided.
+     * @return value of the property provided or null if not found or blank.
      */
-    public Optional<String> getProperty(String propertyName) {
+    public String getProperty(String propertyName) {
 
-        return isNull(propertyName) ? empty() :
-                ofNullable(this.adapterProperties.getProperty(propertyName)).filter(StringUtils::isNotBlank);
+        if (isNull(propertyName)) {
+            return null;
+        }
+        String propertyValue = this.adapterProperties.getProperty(propertyName);
+        return propertyValue != null && !propertyValue.trim().isEmpty() ? propertyValue : null;
     }
 }

@@ -55,12 +55,19 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
         }
     }
 
+    /**
+     * Register a topic in the WebSub Hub.
+     *
+     * @param eventUri     Event URI.
+     * @param tenantDomain Tenant domain.
+     * @throws WebSubAdapterException If an error occurs while registering the topic.
+     */
     public void registerTopic(String eventUri, String tenantDomain) throws WebSubAdapterException {
 
         if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
             try {
                 WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain), getWebSubBaseURL(),
-                        WebSubHubAdapterConstants.REGISTER);
+                        WebSubHubAdapterConstants.Http.REGISTER);
                 if (log.isDebugEnabled()) {
                     log.debug("WebSub Hub Topic registered successfully for the event: " + eventUri + " in tenant: " +
                             tenantDomain);
@@ -74,11 +81,19 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
         }
     }
 
+    /**
+     * Deregister a topic in the WebSub Hub.
+     *
+     * @param eventUri     Event URI.
+     * @param tenantDomain Tenant domain.
+     * @throws WebSubAdapterException If an error occurs while deregistering the topic.
+     */
     public void deregisterTopic(String eventUri, String tenantDomain) throws WebSubAdapterException {
 
         if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
             try {
-                WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain), getWebSubBaseURL(), WebSubHubAdapterConstants.DEREGISTER);
+                WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain),
+                        getWebSubBaseURL(), WebSubHubAdapterConstants.Http.DEREGISTER);
             } catch (IOException e) {
                 throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_DEREGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
             }
@@ -106,6 +121,6 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
 
     private String constructHubTopic(String topicSuffix, String tenantDomain) {
 
-        return tenantDomain + WebSubHubAdapterConstants.TOPIC_SEPARATOR + topicSuffix;
+        return tenantDomain + WebSubHubAdapterConstants.Http.TOPIC_SEPARATOR + topicSuffix;
     }
 }

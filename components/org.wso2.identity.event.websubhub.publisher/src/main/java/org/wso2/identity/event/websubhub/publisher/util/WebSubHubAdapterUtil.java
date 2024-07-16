@@ -18,6 +18,7 @@
 
 package org.wso2.identity.event.websubhub.publisher.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -30,6 +31,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -49,6 +51,7 @@ import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterServer
 import org.wso2.identity.event.websubhub.publisher.internal.WebSubHubAdapterDataHolder;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,26 +60,19 @@ import java.util.UUID;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.CORRELATION_ID_MDC;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.CORRELATION_ID_REQUEST_HEADER;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.DEREGISTER;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ERROR_TOPIC_DEREG_FAILURE_ACTIVE_SUBS;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_BACKEND_ERROR_FROM_WEBSUB_HUB;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_EMPTY_RESPONSE_FROM_WEBSUB_HUB;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_INVALID_RESPONSE_FROM_WEBSUB_HUB;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_INVALID_TOPIC;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_INVALID_WEB_SUB_HUB_BASE_URL;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_INVALID_WEB_SUB_OPERATION;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_PUBLISHING_EVENT_INVALID_PAYLOAD;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.TOPIC_DEREGISTRATION_FAILURE_ACTIVE_SUBS;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_ACTIVE_SUBS;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_MODE;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_REASON;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.HUB_TOPIC;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.PUBLISH;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.REGISTER;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.RESPONSE_FOR_SUCCESSFUL_OPERATION;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.URL_KEY_VALUE_SEPARATOR;
-import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.URL_PARAM_SEPARATOR;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.*;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.CORRELATION_ID_REQUEST_HEADER;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.DEREGISTER;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.ERROR_TOPIC_DEREG_FAILURE_ACTIVE_SUBS;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.HUB_ACTIVE_SUBS;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.HUB_MODE;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.HUB_REASON;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.HUB_TOPIC;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.PUBLISH;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.REGISTER;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.RESPONSE_FOR_SUCCESSFUL_OPERATION;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.URL_KEY_VALUE_SEPARATOR;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.URL_PARAM_SEPARATOR;
 
 /**
  * This class contains the utility method implementations required by WebSub Hub outbound adapter.
@@ -109,6 +105,8 @@ public class WebSubHubAdapterUtil {
         request.setHeader(CORRELATION_ID_REQUEST_HEADER, getCorrelationID());
 
         ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         String jsonString;
         try {
             jsonString = mapper.writeValueAsString(eventPayload);
@@ -152,20 +150,45 @@ public class WebSubHubAdapterUtil {
                 handleResponseCorrelationLog(request, requestStartTime, WebSubHubCorrelationLogUtils.RequestStatus.COMPLETED.getStatus(),
                         String.valueOf(responseCode), responsePhrase);
 
-
-                if (responseCode == 200 || responseCode == 201 || responseCode == 202 || responseCode == 204) {
-                    // Check for 200 success code range.
+                if (responseCode == HttpStatus.SC_OK || responseCode == HttpStatus.SC_CREATED ||
+                        responseCode == HttpStatus.SC_ACCEPTED || responseCode == HttpStatus.SC_NO_CONTENT) {
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                                WebSubHubAdapterConstants.LogConstants.WEB_SUB_HUB_ADAPTER,
+                                WebSubHubAdapterConstants.LogConstants.ActionIDs.PUBLISH_EVENT);
+                        diagnosticLogBuilder
+                                .inputParam(WebSubHubAdapterConstants.LogConstants.InputKeys.URL, url)
+                                .inputParam(WebSubHubAdapterConstants.LogConstants.InputKeys.TENANT_DOMAIN,
+                                        eventContext.getTenantDomain())
+                                .inputParam(WebSubHubAdapterConstants.LogConstants.InputKeys.TOPIC, topic)
+                                .resultMessage("Event data published to WebSubHub.")
+                                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
                     if (log.isDebugEnabled()) {
-                        String responseBody;
                         try {
-                            responseBody = EntityUtils.toString(response.getEntity());
-                            log.debug("Response data: " + responseBody);
+                            log.debug("Response data: " + EntityUtils.toString(response.getEntity()));
                         } catch (IOException e) {
                             log.debug("Error while reading WebSubHub event publisher response. ", e);
                         }
                     }
                 } else {
                     String errorResponseBody;
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                                WebSubHubAdapterConstants.LogConstants.WEB_SUB_HUB_ADAPTER,
+                                WebSubHubAdapterConstants.LogConstants.ActionIDs.PUBLISH_EVENT);
+                        diagnosticLogBuilder
+                                .inputParam(WebSubHubAdapterConstants.LogConstants.InputKeys.URL, url)
+                                .inputParam(WebSubHubAdapterConstants.LogConstants.InputKeys.TENANT_DOMAIN,
+                                        eventContext.getTenantDomain())
+                                .inputParam(WebSubHubAdapterConstants.LogConstants.InputKeys.TOPIC, topic)
+                                .resultMessage("Failed to publish event data to WebSubHub.")
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
                     try {
                         errorResponseBody = EntityUtils.toString(response.getEntity());
                         log.error("WebHubSub event publisher received " + responseCode + " code. Response data: " + errorResponseBody);
@@ -293,21 +316,17 @@ public class WebSubHubAdapterUtil {
      * @return Url to publish the event.
      */
     private static String buildURL(String topic, String webSubHubBaseUrl, String operation)
-            throws WebSubAdapterClientException {
+            throws WebSubAdapterServerException {
 
-        if (topic == null) {
-            throw handleClientException(ERROR_INVALID_TOPIC);
+        try {
+            URIBuilder uriBuilder = new URIBuilder(webSubHubBaseUrl);
+            uriBuilder.addParameter(HUB_MODE, operation);
+            uriBuilder.addParameter(HUB_TOPIC, topic);
+            return uriBuilder.build().toString();
+        } catch (URISyntaxException e) {
+            log.error("Error building URL", e);
+            throw handleServerException(ERROR_INVALID_WEB_SUB_HUB_BASE_URL, e);
         }
-
-        if (webSubHubBaseUrl == null) {
-            throw handleClientException(ERROR_INVALID_WEB_SUB_HUB_BASE_URL);
-        }
-
-        if (operation == null) {
-            throw handleClientException(ERROR_INVALID_WEB_SUB_OPERATION);
-        }
-
-        return webSubHubBaseUrl + "?" + HUB_MODE + "=" + operation + "&" + HUB_TOPIC + "=" + topic;
     }
 
     /**

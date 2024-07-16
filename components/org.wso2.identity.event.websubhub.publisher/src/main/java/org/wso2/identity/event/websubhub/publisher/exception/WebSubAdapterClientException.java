@@ -27,5 +27,4 @@ public class WebSubAdapterClientException extends WebSubAdapterException {
 
         super(message, description, errorCode);
     }
-
 }

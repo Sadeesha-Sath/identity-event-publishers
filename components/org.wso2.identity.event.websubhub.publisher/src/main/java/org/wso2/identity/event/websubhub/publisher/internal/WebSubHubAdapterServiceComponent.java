@@ -44,15 +44,13 @@ public class WebSubHubAdapterServiceComponent {
     protected void activate(ComponentContext context) {
 
         try {
-            //TODO: Check isAdapterEnabled() method before service register
-            WebSubHubAdapterServiceImpl webSubHubEventAdapter = new WebSubHubAdapterServiceImpl();
-            context.getBundleContext().registerService(EventPublisher.class.getName(),
-                    webSubHubEventAdapter, null);
             WebSubHubAdapterDataHolder.getInstance().setAdapterConfiguration(new WebSubAdapterConfiguration(
                     OutboundAdapterConfigurationProvider.getInstance()));
-            WebSubHubAdapterDataHolder.getInstance().setClientManager(new ClientManager());
-            WebSubHubAdapterDataHolder.getInstance().setResourceRetriever(new DefaultResourceRetriever());
-            if (log.isDebugEnabled()) {
+            if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
+                context.getBundleContext().registerService(EventPublisher.class.getName(),
+                        new WebSubHubAdapterServiceImpl(), null);
+                WebSubHubAdapterDataHolder.getInstance().setClientManager(new ClientManager());
+                WebSubHubAdapterDataHolder.getInstance().setResourceRetriever(new DefaultResourceRetriever());
                 log.debug("Successfully activated the WebSub Hub adapter service.");
             }
         } catch (Throwable e) {

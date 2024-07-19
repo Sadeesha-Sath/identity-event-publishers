@@ -117,10 +117,8 @@ public class WebSubHubAdapterUtil {
 
         CloseableHttpAsyncClient client = WebSubHubAdapterDataHolder.getInstance().getClientManager().getClient();
 
-        if (log.isDebugEnabled()) {
-            log.debug("Publishing event data to WebSubHub. URL: " + url + " tenant domain: " +
-                    eventContext.getTenantDomain());
-        }
+        log.debug("Publishing event data to WebSubHub. URL: " + url + " tenant domain: " +
+                eventContext.getTenantDomain());
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     WebSubHubAdapterConstants.LogConstants.WEB_SUB_HUB_ADAPTER,
@@ -144,9 +142,7 @@ public class WebSubHubAdapterUtil {
 
                 int responseCode = response.getStatusLine().getStatusCode();
                 String responsePhrase = response.getStatusLine().getReasonPhrase();
-                if (log.isDebugEnabled()) {
-                    log.debug("WebSubHub request completed. Response code: " + responseCode);
-                }
+                log.debug("WebSubHub request completed. Response code: " + responseCode);
                 handleResponseCorrelationLog(request, requestStartTime, WebSubHubCorrelationLogUtils.RequestStatus.COMPLETED.getStatus(),
                         String.valueOf(responseCode), responsePhrase);
 
@@ -166,12 +162,10 @@ public class WebSubHubAdapterUtil {
                                 .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
-                    if (log.isDebugEnabled()) {
-                        try {
-                            log.debug("Response data: " + EntityUtils.toString(response.getEntity()));
-                        } catch (IOException e) {
-                            log.debug("Error while reading WebSubHub event publisher response. ", e);
-                        }
+                    try {
+                        log.debug("Response data: " + EntityUtils.toString(response.getEntity()));
+                    } catch (IOException e) {
+                        log.debug("Error while reading WebSubHub event publisher response. ", e);
                     }
                 } else {
                     String errorResponseBody;
@@ -249,9 +243,7 @@ public class WebSubHubAdapterUtil {
                     if (entity != null) {
                         String responseString = EntityUtils.toString(entity, StandardCharsets.UTF_8);
                         if (RESPONSE_FOR_SUCCESSFUL_OPERATION.equals(responseString)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("Success WebSub Hub operation: " + operation + ", topic: " + topic);
-                            }
+                            log.debug("Success WebSub Hub operation: " + operation + ", topic: " + topic);
                         } else {
                             throw handleServerException(ERROR_INVALID_RESPONSE_FROM_WEBSUB_HUB, null, topic,
                                     operation, responseString);
@@ -405,9 +397,7 @@ public class WebSubHubAdapterUtil {
 
         if (entity != null) {
             String responseContent = EntityUtils.toString(entity, StandardCharsets.UTF_8);
-            if (log.isDebugEnabled()) {
-                log.debug("Parsing response content from event hub: " + responseContent);
-            }
+            log.debug("Parsing response content from event hub: " + responseContent);
             String[] responseParams = responseContent.split(URL_PARAM_SEPARATOR);
             for (String param : responseParams) {
                 String[] keyValuePair = param.split(URL_KEY_VALUE_SEPARATOR);

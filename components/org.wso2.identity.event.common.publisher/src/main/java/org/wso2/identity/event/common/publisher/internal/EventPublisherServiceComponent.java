@@ -20,8 +20,13 @@ package org.wso2.identity.event.common.publisher.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.*;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.wso2.identity.event.common.publisher.EventPublisherService;
 import org.wso2.identity.event.common.publisher.EventPublisher;
 
@@ -29,7 +34,7 @@ import org.wso2.identity.event.common.publisher.EventPublisher;
  * Event Publisher Service Component.
  */
 @Component(
-        name = "internal.org.wso2.identity.event.common.publisher.EventPublisherServiceComponent",
+        name = "org.wso2.identity.event.common.publisher.EventPublisherServiceComponent",
         immediate = true)
 public class EventPublisherServiceComponent {
 
@@ -41,9 +46,7 @@ public class EventPublisherServiceComponent {
         try {
             context.getBundleContext().registerService(EventPublisherService.class.getName(),
                     new EventPublisherService(), null);
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully activated the Event Publisher service.");
-            }
+            log.debug("Successfully activated the Event Publisher service.");
         } catch (Throwable e) {
             log.error("Can not activate the Event Publisher service." + e.getMessage(), e);
         }
@@ -52,9 +55,7 @@ public class EventPublisherServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Successfully de-activated the Event Publisher service.");
-        }
+        log.debug("Successfully de-activated the Event Publisher service.");
     }
 
     @Reference(
@@ -66,19 +67,15 @@ public class EventPublisherServiceComponent {
     )
     protected void addEventPublisher(EventPublisher eventPublisher) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Adding the event publisher Service : " +
-                    eventPublisher.getClass().getName());
-        }
+        log.debug("Adding the event publisher Service : " +
+                eventPublisher.getClass().getName());
         EventPublisherDataHolder.getInstance().addEventPublisher(eventPublisher);
     }
 
     protected void removeEventPublisher(EventPublisher eventPublisher) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Removing the event publisher Service : " +
-                    eventPublisher.getClass().getName());
-        }
+        log.debug("Removing the event publisher Service : " +
+                eventPublisher.getClass().getName());
         EventPublisherDataHolder.getInstance().removeEventPublisher(eventPublisher);
     }
 }

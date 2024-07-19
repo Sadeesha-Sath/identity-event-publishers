@@ -120,10 +120,8 @@ public class ClientManager {
         poolingHttpClientConnectionMgr.setMaxTotal(maxConnections);
         // Increase default max connection per route to 20.
         poolingHttpClientConnectionMgr.setDefaultMaxPerRoute(maxConnectionsPerRoute);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections +
-                    " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
-        }
+        LOG.debug("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections +
+                " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
         return poolingHttpClientConnectionMgr;
     }
 
@@ -136,10 +134,7 @@ public class ClientManager {
                     .build();
             builder.setSSLContext(sslContext);
             builder.setSSLHostnameVerifier(new DefaultHostnameVerifier());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("SSL context and hostname verifier added");
-            }
-
+            LOG.debug("SSL context and hostname verifier added");
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_SSL_CONTEXT, e);
         }

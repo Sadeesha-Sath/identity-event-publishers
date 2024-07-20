@@ -22,8 +22,9 @@ import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.identity.event.common.publisher.model.EventContext;
@@ -66,8 +67,10 @@ public class WebSubHubAdapterServiceImplTest {
     private MockedStatic<LoggerUtils> mockedLoggerUtils;
     private MockedStatic<WebSubHubAdapterUtil> mockedWebSubHubAdapterUtil;
 
-    @BeforeMethod
-    public void setUp() throws WebSubAdapterException {
+    @BeforeClass
+    public void setUpClass() throws WebSubAdapterException {
+
+        // Initialize mocks and the service instance
         MockitoAnnotations.openMocks(this);
         webSubHubAdapterService = new WebSubHubAdapterServiceImpl();
 
@@ -86,15 +89,22 @@ public class WebSubHubAdapterServiceImplTest {
         mockedWebSubHubAdapterUtil = mockStatic(WebSubHubAdapterUtil.class);
 
         // Common configurations for all tests
-        when(mockAdapterConfiguration.isAdapterEnabled()).thenReturn(true);
         when(mockAdapterConfiguration.getWebSubHubBaseUrl()).thenReturn(SAMPLE_WEB_SUB_HUB_BASE_URL);
     }
 
-    @AfterMethod
-    public void tearDown() {
+    @AfterClass
+    public void tearDownClass() {
+
         // Close the mocked static methods
         mockedLoggerUtils.close();
         mockedWebSubHubAdapterUtil.close();
+    }
+
+    @AfterMethod
+    public void tearDownMethod() {
+
+        // Reset the mocks after each test
+        mockedWebSubHubAdapterUtil.reset();
     }
 
     @Test
@@ -111,11 +121,15 @@ public class WebSubHubAdapterServiceImplTest {
         webSubHubAdapterService.publish(mockEventPayload, mockEventContext);
 
         // Verify interactions with the mocks
-        verify(mockAdapterConfiguration, times(1)).isAdapterEnabled();
+        verify(mockAdapterConfiguration, times(1)).getWebSubHubBaseUrl();
+
+        // Verify static method calls
+        mockedWebSubHubAdapterUtil.verify(() -> WebSubHubAdapterUtil.makeAsyncAPICall(any(), any(), any(), any()), times(1));
     }
 
     @Test
     public void testRegisterTopic() throws WebSubAdapterException, IOException {
+
         // Mock the static method for topic management API call
         mockedWebSubHubAdapterUtil.when(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()))
                 .thenAnswer(invocation -> null);
@@ -124,12 +138,15 @@ public class WebSubHubAdapterServiceImplTest {
         webSubHubAdapterService.registerTopic(SAMPLE_EVENT_URI, SAMPLE_TENANT_DOMAIN);
 
         // Verify interactions with the mocks
-        verify(mockAdapterConfiguration, times(1)).isAdapterEnabled();
         verify(mockAdapterConfiguration, times(1)).getWebSubHubBaseUrl();
+
+        // Verify static method calls
+        mockedWebSubHubAdapterUtil.verify(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()), times(1));
     }
 
     @Test
     public void testDeregisterTopic() throws WebSubAdapterException, IOException {
+
         // Mock the static method for topic management API call
         mockedWebSubHubAdapterUtil.when(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()))
                 .thenAnswer(invocation -> null);
@@ -138,7 +155,9 @@ public class WebSubHubAdapterServiceImplTest {
         webSubHubAdapterService.deregisterTopic(SAMPLE_EVENT_URI, SAMPLE_TENANT_DOMAIN);
 
         // Verify interactions with the mocks
-        verify(mockAdapterConfiguration, times(1)).isAdapterEnabled();
         verify(mockAdapterConfiguration, times(1)).getWebSubHubBaseUrl();
+
+        // Verify static method calls
+        mockedWebSubHubAdapterUtil.verify(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()), times(1));
     }
 }

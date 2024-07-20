@@ -43,14 +43,9 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
     public void publish(SecurityEventTokenPayload eventPayload, EventContext eventContext)
             throws WebSubAdapterException {
 
-        if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
-            WebSubHubAdapterUtil.makeAsyncAPICall(eventPayload, eventContext,
-                    constructHubTopic(eventContext.getEventUri(), eventContext.getTenantDomain()), getWebSubBaseURL());
-            log.debug("Event published successfully to the WebSub Hub.");
-        } else {
-            log.warn("Event cannot be published, WebSub Hub Adapter is not enabled.");
-            throw WebSubHubAdapterUtil.handleClientException(WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_HUB_ADAPTER_DISABLED);
-        }
+        WebSubHubAdapterUtil.makeAsyncAPICall(eventPayload, eventContext,
+                constructHubTopic(eventContext.getEventUri(), eventContext.getTenantDomain()), getWebSubBaseURL());
+        log.debug("Event published successfully to the WebSub Hub.");
     }
 
     /**
@@ -62,18 +57,13 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
      */
     public void registerTopic(String eventUri, String tenantDomain) throws WebSubAdapterException {
 
-        if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
-            try {
-                WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain), getWebSubBaseURL(),
-                        WebSubHubAdapterConstants.Http.REGISTER);
-                log.debug("WebSub Hub Topic registered successfully for the event: " + eventUri + " in tenant: " +
-                        tenantDomain);
-            } catch (IOException e) {
-                throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_REGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
-            }
-        } else {
-            log.warn("WebSub Hub Topic cannot be registered, WebSub Hub Adapter is not enabled.");
-            throw WebSubHubAdapterUtil.handleClientException(WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_HUB_ADAPTER_DISABLED);
+        try {
+            WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain), getWebSubBaseURL(),
+                    WebSubHubAdapterConstants.Http.REGISTER);
+            log.debug("WebSub Hub Topic registered successfully for the event: " + eventUri + " in tenant: " +
+                    tenantDomain);
+        } catch (IOException e) {
+            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_REGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
         }
     }
 
@@ -86,16 +76,11 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
      */
     public void deregisterTopic(String eventUri, String tenantDomain) throws WebSubAdapterException {
 
-        if (WebSubHubAdapterDataHolder.getInstance().getAdapterConfiguration().isAdapterEnabled()) {
-            try {
-                WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain),
-                        getWebSubBaseURL(), WebSubHubAdapterConstants.Http.DEREGISTER);
-            } catch (IOException e) {
-                throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_DEREGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
-            }
-        } else {
-            log.warn("WebSub Hub Topic cannot be de-registered, WebSub Hub Adapter is not enabled.");
-            throw WebSubHubAdapterUtil.handleClientException(WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_HUB_ADAPTER_DISABLED);
+        try {
+            WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain),
+                    getWebSubBaseURL(), WebSubHubAdapterConstants.Http.DEREGISTER);
+        } catch (IOException e) {
+            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_DEREGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
         }
     }
 

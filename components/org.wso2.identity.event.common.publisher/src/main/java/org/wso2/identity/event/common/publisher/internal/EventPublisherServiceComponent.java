@@ -20,15 +20,15 @@ package org.wso2.identity.event.common.publisher.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.wso2.identity.event.common.publisher.EventPublisherService;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.identity.event.common.publisher.EventPublisher;
+import org.wso2.identity.event.common.publisher.EventPublisherService;
 
 /**
  * Event Publisher Service Component.
@@ -67,14 +67,14 @@ public class EventPublisherServiceComponent {
     )
     protected void addEventPublisher(EventPublisher eventPublisher) {
 
-        log.debug("Adding the event publisher Service : " +
+        log.debug("Adding the event publisher service : " +
                 eventPublisher.getClass().getName());
         EventPublisherDataHolder.getInstance().addEventPublisher(eventPublisher);
     }
 
     protected void removeEventPublisher(EventPublisher eventPublisher) {
 
-        log.debug("Removing the event publisher Service : " +
+        log.debug("Removing the event publisher service : " +
                 eventPublisher.getClass().getName());
         EventPublisherDataHolder.getInstance().removeEventPublisher(eventPublisher);
     }

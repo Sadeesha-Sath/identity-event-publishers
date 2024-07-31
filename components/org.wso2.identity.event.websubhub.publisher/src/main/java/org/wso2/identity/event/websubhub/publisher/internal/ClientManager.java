@@ -30,8 +30,8 @@ import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.ssl.SSLContexts;
 import org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants;
-import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterException;
+import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -63,7 +63,8 @@ public class ClientManager {
             connectionManager = createPoolingConnectionManager();
             LOG.info("Successfully created PoolingNHttpClientConnectionManager");
         } catch (IOException e) {
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);
         }
 
         RequestConfig config = createRequestConfig();
@@ -84,7 +85,8 @@ public class ClientManager {
 
         if (isNull(httpAsyncClient)) {
             LOG.error("HttpAsyncClient is null");
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_GETTING_ASYNC_CLIENT, null);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_GETTING_ASYNC_CLIENT, null);
         } else if (!httpAsyncClient.isRunning()) {
             LOG.warn("HttpAsyncClient is not running, starting client");
             httpAsyncClient.start();
@@ -136,7 +138,8 @@ public class ClientManager {
             builder.setSSLHostnameVerifier(new DefaultHostnameVerifier());
             LOG.debug("SSL context and hostname verifier added");
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_SSL_CONTEXT, e);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_SSL_CONTEXT, e);
         }
     }
 }

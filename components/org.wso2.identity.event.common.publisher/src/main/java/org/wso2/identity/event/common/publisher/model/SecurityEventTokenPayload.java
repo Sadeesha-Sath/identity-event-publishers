@@ -25,22 +25,28 @@ import java.util.Map;
  */
 public class SecurityEventTokenPayload {
 
-    private String iss;
-    private String jti;
-    private long iat;
-    private String aud;
-    private String txn;
-    private String rci;
-    private Map<String, EventPayload> event;
+    private final String iss;
+    private final String jti;
+    private final long iat;
+    private final String aud;
+    private final String txn;
+    private final String rci;
+    private final Map<String, EventPayload> event;
+
+    private SecurityEventTokenPayload(Builder builder) {
+
+        this.iss = builder.iss;
+        this.jti = builder.jti;
+        this.iat = builder.iat;
+        this.aud = builder.aud;
+        this.txn = builder.txn;
+        this.rci = builder.rci;
+        this.event = builder.event;
+    }
 
     public String getIss() {
 
         return iss;
-    }
-
-    public void setIss(String iss) {
-
-        this.iss = iss;
     }
 
     public String getJti() {
@@ -48,19 +54,9 @@ public class SecurityEventTokenPayload {
         return jti;
     }
 
-    public void setJti(String jti) {
-
-        this.jti = jti;
-    }
-
     public long getIat() {
 
         return iat;
-    }
-
-    public void setIat(long iat) {
-
-        this.iat = iat;
     }
 
     public String getAud() {
@@ -68,17 +64,14 @@ public class SecurityEventTokenPayload {
         return aud;
     }
 
-    public void setAud(String aud) {
-
-        this.aud = aud;
-    }
-
     public String getTxn() {
+
         return txn;
     }
 
-    public void setTxn(String txn) {
-        this.txn = txn;
+    public String getRci() {
+
+        return rci;
     }
 
     public Map<String, EventPayload> getEvent() {
@@ -86,16 +79,69 @@ public class SecurityEventTokenPayload {
         return event;
     }
 
-    public void setEvent(Map<String, EventPayload> event) {
+    public static Builder builder() {
 
-        this.event = event;
+        return new Builder();
     }
 
-    public String getRci() {
-        return rci;
-    }
+    /**
+     * Builder class for Security Event Token Payload.
+     */
+    public static class Builder {
 
-    public void setRci(String rci) {
-        this.rci = rci;
+        private String iss;
+        private String jti;
+        private long iat;
+        private String aud;
+        private String txn;
+        private String rci;
+        private Map<String, EventPayload> event;
+
+        public Builder iss(String iss) {
+
+            this.iss = iss;
+            return this;
+        }
+
+        public Builder jti(String jti) {
+
+            this.jti = jti;
+            return this;
+        }
+
+        public Builder iat(long iat) {
+
+            this.iat = iat;
+            return this;
+        }
+
+        public Builder aud(String aud) {
+
+            this.aud = aud;
+            return this;
+        }
+
+        public Builder txn(String txn) {
+
+            this.txn = txn;
+            return this;
+        }
+
+        public Builder rci(String rci) {
+
+            this.rci = rci;
+            return this;
+        }
+
+        public Builder event(Map<String, EventPayload> event) {
+
+            this.event = event;
+            return this;
+        }
+
+        public SecurityEventTokenPayload build() {
+
+            return new SecurityEventTokenPayload(this);
+        }
     }
 }

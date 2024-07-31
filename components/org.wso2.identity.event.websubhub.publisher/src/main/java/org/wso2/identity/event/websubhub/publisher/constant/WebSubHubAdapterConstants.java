@@ -23,13 +23,17 @@ package org.wso2.identity.event.websubhub.publisher.constant;
  */
 public class WebSubHubAdapterConstants {
 
-    // Configuration related constants
+    /**
+     * Configuration related constants
+     */
     public static class Config {
         public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
         private Config() {}
     }
 
-    // HTTP related constants
+    /**
+    * WebSub Hub Adapter related constants
+    */
     public static class Http {
         public static final String TOPIC_SEPARATOR = "-";
         public static final String URL_PARAM_SEPARATOR = "&";
@@ -54,7 +58,9 @@ public class WebSubHubAdapterConstants {
         private Http() {}
     }
 
-    // Error message related constants
+    /**
+     * Error messages related to the WebSubHub Event Adapter.
+     */
     public enum ErrorMessages {
         // client errors
         WEB_SUB_BASE_URL_NOT_CONFIGURED("60001", "WebSub Hub base URL is not configured.",
@@ -119,13 +125,18 @@ public class WebSubHubAdapterConstants {
         }
     }
 
-    // Logging constants
+    /**
+     * Constants related to logging.
+     */
     public static class LogConstants {
 
         private LogConstants() {}
 
         public static final String WEB_SUB_HUB_ADAPTER = "web-sub-hub-adapter";
 
+        /**
+         * Class related to Action IDs.
+         */
         public static class ActionIDs {
 
             private ActionIDs() {}
@@ -133,6 +144,9 @@ public class WebSubHubAdapterConstants {
             public static final String PUBLISH_EVENT = "publish-event";
         }
 
+        /**
+         * Class related to Input Keys.
+         */
         public static class InputKeys {
 
             private InputKeys() {}

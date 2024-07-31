@@ -21,13 +21,13 @@ package org.wso2.identity.event.websubhub.publisher.service;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.identity.event.common.publisher.model.EventContext;
 import org.wso2.identity.event.common.publisher.EventPublisher;
-import org.wso2.identity.event.websubhub.publisher.internal.WebSubHubAdapterDataHolder;
+import org.wso2.identity.event.common.publisher.model.EventContext;
 import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
 import org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants;
-import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterException;
+import org.wso2.identity.event.websubhub.publisher.internal.WebSubHubAdapterDataHolder;
+import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 
 import java.io.IOException;
 
@@ -63,7 +63,8 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
             log.debug("WebSub Hub Topic registered successfully for the event: " + eventUri + " in tenant: " +
                     tenantDomain);
         } catch (IOException e) {
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_REGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_REGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
         }
     }
 
@@ -80,7 +81,8 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
             WebSubHubAdapterUtil.makeTopicMgtAPICall(constructHubTopic(eventUri, tenantDomain),
                     getWebSubBaseURL(), WebSubHubAdapterConstants.Http.DEREGISTER);
         } catch (IOException e) {
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_DEREGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_DEREGISTERING_HUB_TOPIC, e, eventUri, tenantDomain);
         }
     }
 
@@ -94,7 +96,8 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
             // But adding this as a second level verification.
             if (StringUtils.isEmpty(webSubHubBaseUrl)) {
                 log.warn("WebSubHub Base URL is empty. WebSubHubEventPublisher will not engage.");
-                throw WebSubHubAdapterUtil.handleClientException(WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_BASE_URL_NOT_CONFIGURED);
+                throw WebSubHubAdapterUtil.handleClientException
+                        (WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_BASE_URL_NOT_CONFIGURED);
             }
         }
         return webSubHubBaseUrl;

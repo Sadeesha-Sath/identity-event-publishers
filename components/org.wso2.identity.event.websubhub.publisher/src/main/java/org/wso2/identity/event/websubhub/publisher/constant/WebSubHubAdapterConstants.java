@@ -54,7 +54,7 @@ public class WebSubHubAdapterConstants {
         public static final Integer DEFAULT_HTTP_READ_TIMEOUT = 300;
         public static final Integer DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT = 300;
         public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS = 20;
-        public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS_PER_ROUTE = 20;
+        public static final Integer DEFAULT_HTTP_MAX_CONNECTIONS_PER_ROUTE = 2;
         private Http() {}
     }
 

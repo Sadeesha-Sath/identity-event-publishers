@@ -40,8 +40,6 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLContext;
 
-import static java.util.Objects.isNull;
-
 /**
  * Class to retrieve the HTTP Clients.
  */
@@ -61,7 +59,7 @@ public class ClientManager {
         PoolingNHttpClientConnectionManager connectionManager;
         try {
             connectionManager = createPoolingConnectionManager();
-            LOG.info("Successfully created PoolingNHttpClientConnectionManager");
+            LOG.debug("Successfully created PoolingNHttpClientConnectionManager");
         } catch (IOException e) {
             throw WebSubHubAdapterUtil.handleServerException
                     (WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);
@@ -73,7 +71,7 @@ public class ClientManager {
         httpClientBuilder.setConnectionManager(connectionManager);
         httpAsyncClient = httpClientBuilder.build();
         httpAsyncClient.start();
-        LOG.info("HttpAsyncClient started");
+        LOG.debug("HttpAsyncClient started");
     }
 
     /**
@@ -81,13 +79,9 @@ public class ClientManager {
      *
      * @return CloseableHttpAsyncClient instance.
      */
-    public CloseableHttpAsyncClient getClient() throws WebSubAdapterException {
+    public CloseableHttpAsyncClient getClient() {
 
-        if (isNull(httpAsyncClient)) {
-            LOG.error("HttpAsyncClient is null");
-            throw WebSubHubAdapterUtil.handleServerException
-                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_GETTING_ASYNC_CLIENT, null);
-        } else if (!httpAsyncClient.isRunning()) {
+        if (!httpAsyncClient.isRunning()) {
             LOG.warn("HttpAsyncClient is not running, starting client");
             httpAsyncClient.start();
         }

@@ -95,7 +95,7 @@ public class ClientManager {
     public CloseableHttpAsyncClient getClient() {
 
         if (!httpAsyncClient.isRunning()) {
-            LOG.warn("HttpAsyncClient is not running, starting client");
+            LOG.debug("HttpAsyncClient is not running, starting client");
             httpAsyncClient.start();
         }
         return httpAsyncClient;

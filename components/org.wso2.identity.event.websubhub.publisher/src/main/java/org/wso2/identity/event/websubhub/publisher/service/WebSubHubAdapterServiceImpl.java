@@ -123,7 +123,6 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
             // At this point, url shouldn't be null since if adapter is enabled, url is mandatory to configured.
             // But adding this as a second level verification.
             if (StringUtils.isEmpty(webSubHubBaseUrl)) {
-                log.warn("WebSubHub Base URL is empty. WebSubHubEventPublisher will not engage.");
                 throw handleClientException
                         (WebSubHubAdapterConstants.ErrorMessages.WEB_SUB_BASE_URL_NOT_CONFIGURED);
             }
@@ -209,20 +208,33 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
         String responsePhrase = statusLine.getReasonPhrase();
 
         if (responseCode == HttpStatus.SC_OK) {
-            handleSuccessfulTopicMgt(response, httpPost, topic, operation, requestStartTime,
-                    responseCode, responsePhrase);
+            HttpEntity entity = response.getEntity();
+            WebSubHubCorrelationLogUtils.triggerCorrelationLogForResponse(httpPost, requestStartTime,
+                    WebSubHubCorrelationLogUtils.RequestStatus.COMPLETED.getStatus(),
+                    String.valueOf(responseCode), responsePhrase);
+            handleSuccessfulTopicMgt(entity, topic, operation);
         } else if ((responseCode == HttpStatus.SC_CONFLICT && operation.equals(REGISTER)) ||
                 (responseCode == HttpStatus.SC_NOT_FOUND && operation.equals(DEREGISTER))) {
-            handleConflictOrNotFound(response, httpPost, topic, operation, requestStartTime,
-                    responseCode, responsePhrase);
+            HttpEntity entity = response.getEntity();
+            WebSubHubCorrelationLogUtils.triggerCorrelationLogForResponse(httpPost, requestStartTime,
+                    WebSubHubCorrelationLogUtils.RequestStatus.FAILED.getStatus(),
+                    String.valueOf(responseCode), responsePhrase);
+            handleConflictOrNotFound(entity, topic, operation);
         } else {
-            handleFailedTopicMgt(response, httpPost, topic, operation, requestStartTime,
-                    responseCode, responsePhrase);
+            WebSubHubCorrelationLogUtils.triggerCorrelationLogForResponse(httpPost, requestStartTime,
+                    WebSubHubCorrelationLogUtils.RequestStatus.CANCELLED.getStatus(),
+                    String.valueOf(responseCode), responsePhrase);
+            if (responseCode == HttpStatus.SC_FORBIDDEN) {
+                handleForbiddenResponse(response, topic);
+            }
+            HttpEntity entity = response.getEntity();
+            handleFailedTopicMgt(entity, topic, operation, responseCode);
         }
     }
 
     private static void handleAsyncResponse(HttpResponse response, HttpPost request, long requestStartTime,
                                              EventContext eventContext, String url, String topic) {
+
         int responseCode = response.getStatusLine().getStatusCode();
         String responsePhrase = response.getStatusLine().getReasonPhrase();
         log.debug("WebSubHub request completed. Response code: " + responseCode);
@@ -250,14 +262,8 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
         }
     }
 
-    private static void handleSuccessfulTopicMgt(CloseableHttpResponse response, HttpPost httpPost, String topic,
-                                                 String operation, long requestStartTime, int responseCode,
-                                                 String responsePhrase) throws IOException, WebSubAdapterException {
-
-        HttpEntity entity = response.getEntity();
-        WebSubHubCorrelationLogUtils.triggerCorrelationLogForResponse(httpPost, requestStartTime,
-                WebSubHubCorrelationLogUtils.RequestStatus.COMPLETED.getStatus(),
-                String.valueOf(responseCode), responsePhrase);
+    private static void handleSuccessfulTopicMgt(HttpEntity entity, String topic, String operation)
+            throws WebSubAdapterException, IOException {
 
         if (entity != null) {
             String responseString = EntityUtils.toString(entity, StandardCharsets.UTF_8);
@@ -273,15 +279,9 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
         }
     }
 
-    private static void handleConflictOrNotFound(CloseableHttpResponse response, HttpPost httpPost, String topic,
-                                                 String operation, long requestStartTime,
-                                                 int responseCode, String responsePhrase) throws IOException {
+    private static void handleConflictOrNotFound(HttpEntity entity, String topic, String operation) throws IOException {
 
-        HttpEntity entity = response.getEntity();
         String responseString = "";
-        WebSubHubCorrelationLogUtils.triggerCorrelationLogForResponse(httpPost, requestStartTime,
-                WebSubHubCorrelationLogUtils.RequestStatus.FAILED.getStatus(),
-                String.valueOf(responseCode), responsePhrase);
         if (entity != null) {
             responseString = EntityUtils.toString(entity, StandardCharsets.UTF_8);
         }
@@ -289,19 +289,9 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
                 topic, operation, responseString));
     }
 
-    private static void handleFailedTopicMgt(CloseableHttpResponse response, HttpPost httpPost, String topic,
-                                             String operation, long requestStartTime, int responseCode,
-                                             String responsePhrase) throws IOException, WebSubAdapterException {
+    private static void handleFailedTopicMgt(HttpEntity entity, String topic, String operation, int responseCode)
+            throws IOException, WebSubAdapterException {
 
-        WebSubHubCorrelationLogUtils.triggerCorrelationLogForResponse(httpPost, requestStartTime,
-                WebSubHubCorrelationLogUtils.RequestStatus.CANCELLED.getStatus(),
-                String.valueOf(responseCode), responsePhrase);
-
-        if (responseCode == HttpStatus.SC_FORBIDDEN) {
-            handleForbiddenResponse(response, topic);
-        }
-
-        HttpEntity entity = response.getEntity();
         String responseString = "";
         if (entity != null) {
             responseString = EntityUtils.toString(entity, StandardCharsets.UTF_8);

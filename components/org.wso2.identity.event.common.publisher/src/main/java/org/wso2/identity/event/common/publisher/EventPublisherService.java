@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 public class EventPublisherService {
 
     private static final Log log = LogFactory.getLog(EventPublisherService.class);
-    private static final int THREAD_POOL_SIZE = 10; // Customize the thread pool size based on your needs
+    private static final int THREAD_POOL_SIZE = 10;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
 

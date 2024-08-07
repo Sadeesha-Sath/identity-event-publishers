@@ -125,9 +125,7 @@ public class ClientManager {
         ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
         PoolingNHttpClientConnectionManager poolingHttpClientConnectionMgr = new
                 PoolingNHttpClientConnectionManager(ioReactor);
-        // Increase max total connection to 20.
         poolingHttpClientConnectionMgr.setMaxTotal(maxConnections);
-        // Increase default max connection per route to 20.
         poolingHttpClientConnectionMgr.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         LOG.debug("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections +
                 " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
@@ -159,6 +157,7 @@ public class ClientManager {
      * @throws WebSubAdapterException If an error occurs while creating the request.
      */
     public HttpPost createHttpPost(String url, Object payload) throws WebSubAdapterException {
+
         HttpPost request = new HttpPost(url);
         request.setHeader(ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
         request.setHeader(CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
@@ -185,9 +184,10 @@ public class ClientManager {
      * @return A CompletableFuture containing the HTTP response.
      */
     public CompletableFuture<HttpResponse> executeAsync(HttpPost httpPost) {
+
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return httpAsyncClient.execute(httpPost, null).get();
+                return getClient().execute(httpPost, null).get();
             } catch (InterruptedException ie) {
                 // Restore interrupted status
                 Thread.currentThread().interrupt();

@@ -185,6 +185,7 @@ public class ClientManager {
      */
     public CompletableFuture<HttpResponse> executeAsync(HttpPost httpPost) {
 
+        //TODO: Incorporate retry mechanism
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return getClient().execute(httpPost, null).get();

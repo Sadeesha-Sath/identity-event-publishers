@@ -72,7 +72,7 @@ public class ClientManager {
         PoolingNHttpClientConnectionManager connectionManager;
         try {
             connectionManager = createPoolingConnectionManager();
-            LOG.debug("Successfully created PoolingNHttpClientConnectionManager");
+            LOG.debug("Successfully created PoolingNHttpClientConnectionManager.");
         } catch (IOException e) {
             throw WebSubHubAdapterUtil.handleServerException
                     (WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);

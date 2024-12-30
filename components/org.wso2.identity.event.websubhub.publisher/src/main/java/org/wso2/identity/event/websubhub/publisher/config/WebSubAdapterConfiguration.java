@@ -19,8 +19,8 @@
 package org.wso2.identity.event.websubhub.publisher.config;
 
 import org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants;
-import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterException;
+import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 
 /**
  * WebSub Adapter Configuration.

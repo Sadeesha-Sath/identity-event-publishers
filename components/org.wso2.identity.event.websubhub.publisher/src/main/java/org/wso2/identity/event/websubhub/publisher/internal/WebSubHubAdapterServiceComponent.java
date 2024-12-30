@@ -52,6 +52,8 @@ public class WebSubHubAdapterServiceComponent {
                 WebSubHubAdapterDataHolder.getInstance().setClientManager(new ClientManager());
                 WebSubHubAdapterDataHolder.getInstance().setResourceRetriever(new DefaultResourceRetriever());
                 log.debug("Successfully activated the WebSub Hub adapter service.");
+            } else {
+                log.error("WebSub Hub Adapter is not enabled.");
             }
         } catch (Throwable e) {
             log.error("Can not activate the WebSub Hub adapter service: " + e.getMessage(), e);
@@ -61,9 +63,7 @@ public class WebSubHubAdapterServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Successfully de-activated the WebSub Hub adapter service.");
-        }
+        log.debug("Successfully de-activated the WebSub Hub adapter service.");
     }
 }
 

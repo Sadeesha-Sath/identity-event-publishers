@@ -18,10 +18,16 @@
 
 package org.wso2.identity.event.websubhub.publisher.internal;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
@@ -29,18 +35,24 @@ import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.ssl.SSLContexts;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants;
-import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterException;
+import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import javax.net.ssl.SSLContext;
 
-import static java.util.Objects.isNull;
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.ErrorMessages.ERROR_PUBLISHING_EVENT_INVALID_PAYLOAD;
+import static org.wso2.identity.event.websubhub.publisher.constant.WebSubHubAdapterConstants.Http.CORRELATION_ID_REQUEST_HEADER;
 
 /**
  * Class to retrieve the HTTP Clients.
@@ -57,13 +69,13 @@ public class ClientManager {
      */
     public ClientManager() throws WebSubAdapterException {
 
-        LOG.info("Initializing ClientManager");
         PoolingNHttpClientConnectionManager connectionManager;
         try {
             connectionManager = createPoolingConnectionManager();
-            LOG.info("Successfully created PoolingNHttpClientConnectionManager");
+            LOG.debug("Successfully created PoolingNHttpClientConnectionManager.");
         } catch (IOException e) {
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_ASYNC_HTTP_CLIENT, e);
         }
 
         RequestConfig config = createRequestConfig();
@@ -72,7 +84,7 @@ public class ClientManager {
         httpClientBuilder.setConnectionManager(connectionManager);
         httpAsyncClient = httpClientBuilder.build();
         httpAsyncClient.start();
-        LOG.info("HttpAsyncClient started");
+        LOG.debug("HttpAsyncClient started");
     }
 
     /**
@@ -80,13 +92,10 @@ public class ClientManager {
      *
      * @return CloseableHttpAsyncClient instance.
      */
-    public CloseableHttpAsyncClient getClient() throws WebSubAdapterException {
+    public CloseableHttpAsyncClient getClient() {
 
-        if (isNull(httpAsyncClient)) {
-            LOG.error("HttpAsyncClient is null");
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_GETTING_ASYNC_CLIENT, null);
-        } else if (!httpAsyncClient.isRunning()) {
-            LOG.warn("HttpAsyncClient is not running, starting client");
+        if (!httpAsyncClient.isRunning()) {
+            LOG.debug("HttpAsyncClient is not running, starting client");
             httpAsyncClient.start();
         }
         return httpAsyncClient;
@@ -116,14 +125,10 @@ public class ClientManager {
         ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
         PoolingNHttpClientConnectionManager poolingHttpClientConnectionMgr = new
                 PoolingNHttpClientConnectionManager(ioReactor);
-        // Increase max total connection to 20.
         poolingHttpClientConnectionMgr.setMaxTotal(maxConnections);
-        // Increase default max connection per route to 20.
         poolingHttpClientConnectionMgr.setDefaultMaxPerRoute(maxConnectionsPerRoute);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections +
-                    " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
-        }
+        LOG.debug("PoolingNHttpClientConnectionManager created with maxConnections: " + maxConnections +
+                " and maxConnectionsPerRoute: " + maxConnectionsPerRoute);
         return poolingHttpClientConnectionMgr;
     }
 
@@ -136,12 +141,63 @@ public class ClientManager {
                     .build();
             builder.setSSLContext(sslContext);
             builder.setSSLHostnameVerifier(new DefaultHostnameVerifier());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("SSL context and hostname verifier added");
-            }
-
+            LOG.debug("SSL context and hostname verifier added");
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-            throw WebSubHubAdapterUtil.handleServerException(WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_SSL_CONTEXT, e);
+            throw WebSubHubAdapterUtil.handleServerException
+                    (WebSubHubAdapterConstants.ErrorMessages.ERROR_CREATING_SSL_CONTEXT, e);
         }
+    }
+
+    /**
+     * Create an HTTP POST request.
+     *
+     * @param url The URL for the HTTP POST request.
+     * @param payload The payload to include in the request body.
+     * @return A configured HttpPost instance.
+     * @throws WebSubAdapterException If an error occurs while creating the request.
+     */
+    public HttpPost createHttpPost(String url, Object payload) throws WebSubAdapterException {
+
+        HttpPost request = new HttpPost(url);
+        request.setHeader(ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+        request.setHeader(CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        request.setHeader(CORRELATION_ID_REQUEST_HEADER, WebSubHubAdapterUtil.getCorrelationID());
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+        try {
+            String jsonString = mapper.writeValueAsString(payload);
+            request.setEntity(new StringEntity(jsonString));
+        } catch (IOException e) {
+            throw WebSubHubAdapterUtil.handleClientException(ERROR_PUBLISHING_EVENT_INVALID_PAYLOAD);
+        }
+
+        return request;
+    }
+
+    /**
+     * Execute an HTTP POST request asynchronously.
+     *
+     * @param httpPost The HTTP POST request to execute.
+     * @return A CompletableFuture containing the HTTP response.
+     */
+    public CompletableFuture<HttpResponse> executeAsync(HttpPost httpPost) {
+
+        //TODO: Incorporate retry mechanism
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return getClient().execute(httpPost, null).get();
+            } catch (InterruptedException ie) {
+                // Restore interrupted status
+                Thread.currentThread().interrupt();
+                throw new IdentityRuntimeException("Thread was interrupted", ie);
+            } catch (ExecutionException ee) {
+                throw new IdentityRuntimeException("Execution exception", ee);
+            } catch (Exception ex) {
+                throw new IdentityRuntimeException("Exception occurred", ex);
+            }
+        });
     }
 }

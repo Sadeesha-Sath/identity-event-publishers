@@ -22,6 +22,7 @@ package org.wso2.identity.event.common.publisher.model;
  * Model Class for Event Context.
  */
 public class EventContext {
+
     private final String tenantDomain;
     private final String eventUri;
 
@@ -46,7 +47,11 @@ public class EventContext {
         return new Builder();
     }
 
+    /**
+     * Builder class to build EventContext.
+     */
     public static class Builder {
+
         private String tenantDomain;
         private String eventUri;
 

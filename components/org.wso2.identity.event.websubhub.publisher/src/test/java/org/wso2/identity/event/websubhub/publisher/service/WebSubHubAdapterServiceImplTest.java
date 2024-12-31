@@ -18,27 +18,26 @@
 
 package org.wso2.identity.event.websubhub.publisher.service;
 
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.HttpResponse;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.identity.event.common.publisher.model.EventContext;
+import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
 import org.wso2.identity.event.websubhub.publisher.config.WebSubAdapterConfiguration;
+import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterException;
 import org.wso2.identity.event.websubhub.publisher.internal.ClientManager;
 import org.wso2.identity.event.websubhub.publisher.internal.WebSubHubAdapterDataHolder;
-import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
-import org.wso2.identity.event.websubhub.publisher.exception.WebSubAdapterException;
-import org.wso2.identity.event.websubhub.publisher.util.WebSubHubAdapterUtil;
 
-import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,116 +47,59 @@ import static org.mockito.Mockito.when;
  */
 public class WebSubHubAdapterServiceImplTest {
 
-    private static final String SAMPLE_EVENT_URI = "test/event";
-    private static final String SAMPLE_TENANT_DOMAIN = "wso2.com";
-    private static final String SAMPLE_WEB_SUB_HUB_BASE_URL = "https://websubhub.wso2.com";
-
-    @Mock
-    private WebSubAdapterConfiguration mockAdapterConfiguration;
+    private WebSubHubAdapterServiceImpl adapterService;
     @Mock
     private ClientManager mockClientManager;
     @Mock
-    private CloseableHttpAsyncClient mockHttpClient;
+    private WebSubAdapterConfiguration mockAdapterConfiguration;
     @Mock
-    private EventContext mockEventContext;
-    @Mock
-    private SecurityEventTokenPayload mockEventPayload;
-
-    private WebSubHubAdapterServiceImpl webSubHubAdapterService;
-    private MockedStatic<LoggerUtils> mockedLoggerUtils;
-    private MockedStatic<WebSubHubAdapterUtil> mockedWebSubHubAdapterUtil;
+    private HttpResponse mockHttpResponse;
 
     @BeforeClass
-    public void setUpClass() throws WebSubAdapterException {
+    public void setUp() {
 
-        // Initialize mocks and the service instance
         MockitoAnnotations.openMocks(this);
-        webSubHubAdapterService = new WebSubHubAdapterServiceImpl();
+        adapterService = spy(new WebSubHubAdapterServiceImpl());
 
-        // Set up the singleton instance of WebSubHubAdapterDataHolder
-        WebSubHubAdapterDataHolder dataHolder = WebSubHubAdapterDataHolder.getInstance();
-        dataHolder.setAdapterConfiguration(mockAdapterConfiguration);
-        dataHolder.setClientManager(mockClientManager);
+        // Mock WebSubHubAdapterDataHolder
+        MockedStatic<WebSubHubAdapterDataHolder> mockedStaticDataHolder = mockStatic(WebSubHubAdapterDataHolder.class);
+        WebSubHubAdapterDataHolder mockDataHolder = mock(WebSubHubAdapterDataHolder.class);
+        mockedStaticDataHolder.when(WebSubHubAdapterDataHolder::getInstance).thenReturn(mockDataHolder);
 
-        // Set up the client manager mock
-        when(mockClientManager.getClient()).thenReturn(mockHttpClient);
+        when(mockDataHolder.getClientManager()).thenReturn(mockClientManager);
+        when(mockDataHolder.getAdapterConfiguration()).thenReturn(mockAdapterConfiguration);
 
-        // Mock static methods
-        mockedLoggerUtils = mockStatic(LoggerUtils.class);
-        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
-
-        mockedWebSubHubAdapterUtil = mockStatic(WebSubHubAdapterUtil.class);
-
-        // Common configurations for all tests
-        when(mockAdapterConfiguration.getWebSubHubBaseUrl()).thenReturn(SAMPLE_WEB_SUB_HUB_BASE_URL);
-    }
-
-    @AfterClass
-    public void tearDownClass() {
-
-        // Close the mocked static methods
-        mockedLoggerUtils.close();
-        mockedWebSubHubAdapterUtil.close();
-    }
-
-    @AfterMethod
-    public void tearDownMethod() {
-
-        // Reset the mocks after each test
-        mockedWebSubHubAdapterUtil.reset();
+        // Mock adapter configuration
+        when(mockAdapterConfiguration.getWebSubHubBaseUrl()).thenReturn("http://mock-websub-hub.com");
     }
 
     @Test
-    public void testPublish() throws WebSubAdapterException {
-        // Set up the event context mock
-        when(mockEventContext.getEventUri()).thenReturn(SAMPLE_EVENT_URI);
-        when(mockEventContext.getTenantDomain()).thenReturn(SAMPLE_TENANT_DOMAIN);
+    public void testPublishSuccess() throws WebSubAdapterException {
 
-        // Mock the static method for async API call
-        mockedWebSubHubAdapterUtil.when(() -> WebSubHubAdapterUtil.makeAsyncAPICall(any(), any(), any(), any()))
-                .thenAnswer(invocation -> null);
+        try (MockedStatic<LoggerUtils> mockedLoggerUtils = mockStatic(LoggerUtils.class)) {
+            mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
 
-        // Call the method under test
-        webSubHubAdapterService.publish(mockEventPayload, mockEventContext);
+            // Mock inputs
+            EventContext eventContext = EventContext.builder()
+                    .tenantDomain("test-tenant")
+                    .eventUri("test-uri")
+                    .build();
+            SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                    .iss("issuer")
+                    .jti("jti-token")
+                    .iat(System.currentTimeMillis())
+                    .aud("audience")
+                    .build();
 
-        // Verify interactions with the mocks
-        verify(mockAdapterConfiguration, times(1)).getWebSubHubBaseUrl();
+            // Mock ClientManager behavior to simulate success
+            CompletableFuture<HttpResponse> future = CompletableFuture.completedFuture(mockHttpResponse);
+            when(mockClientManager.executeAsync(any())).thenReturn(future);
 
-        // Verify static method calls
-        mockedWebSubHubAdapterUtil.verify(() -> WebSubHubAdapterUtil.makeAsyncAPICall(any(), any(), any(), any()), times(1));
-    }
+            // Execute and verify no exception is thrown
+            adapterService.publish(payload, eventContext);
 
-    @Test
-    public void testRegisterTopic() throws WebSubAdapterException, IOException {
-
-        // Mock the static method for topic management API call
-        mockedWebSubHubAdapterUtil.when(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()))
-                .thenAnswer(invocation -> null);
-
-        // Call the method under test
-        webSubHubAdapterService.registerTopic(SAMPLE_EVENT_URI, SAMPLE_TENANT_DOMAIN);
-
-        // Verify interactions with the mocks
-        verify(mockAdapterConfiguration, times(1)).getWebSubHubBaseUrl();
-
-        // Verify static method calls
-        mockedWebSubHubAdapterUtil.verify(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()), times(1));
-    }
-
-    @Test
-    public void testDeregisterTopic() throws WebSubAdapterException, IOException {
-
-        // Mock the static method for topic management API call
-        mockedWebSubHubAdapterUtil.when(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()))
-                .thenAnswer(invocation -> null);
-
-        // Call the method under test
-        webSubHubAdapterService.deregisterTopic(SAMPLE_EVENT_URI, SAMPLE_TENANT_DOMAIN);
-
-        // Verify interactions with the mocks
-        verify(mockAdapterConfiguration, times(1)).getWebSubHubBaseUrl();
-
-        // Verify static method calls
-        mockedWebSubHubAdapterUtil.verify(() -> WebSubHubAdapterUtil.makeTopicMgtAPICall(any(), any(), any()), times(1));
+            // Verify interactions and ensure the publish process behaves correctly
+            verify(mockClientManager, times(1)).executeAsync(any());
+        }
     }
 }

@@ -18,28 +18,32 @@
 package org.wso2.identity.event.common.publisher;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.testng.annotations.AfterClass;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.identity.event.common.publisher.internal.EventPublisherDataHolder;
 import org.wso2.identity.event.common.publisher.model.EventContext;
+import org.wso2.identity.event.common.publisher.model.EventPayload;
 import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
- * Test class for EventPublisherService.
+ * Consolidated test class for EventPublisherService, EventContext, and SecurityEventTokenPayload.
  */
 public class EventPublisherServiceTest {
 
@@ -53,50 +57,144 @@ public class EventPublisherServiceTest {
     private SecurityEventTokenPayload mockEventPayload;
 
     private List<EventPublisher> eventPublishers;
-    private ExecutorService executorService;
+    private EventPublisherService eventPublisherService;
 
     @BeforeClass
     public void setupClass() {
+
         MockitoAnnotations.openMocks(this);
-        executorService = Executors.newFixedThreadPool(10);
+        eventPublisherService = Mockito.spy(new EventPublisherService()); // Spy on the service
     }
 
     @BeforeMethod
     public void setup() {
+
+        Mockito.reset(mockEventPublisher1, mockEventPublisher2); // Reset mocks
         eventPublishers = Arrays.asList(mockEventPublisher1, mockEventPublisher2);
-        EventPublisherDataHolder.getInstance().setEventPublishers(eventPublishers);
+        EventPublisherDataHolder.getInstance().setEventPublishers(eventPublishers); // Set publishers
     }
 
-    @AfterClass
-    public void tearDownClass() {
-        executorService.shutdown();
+    @AfterMethod
+    public void tearDown() {
+
+        EventPublisherDataHolder.getInstance().setEventPublishers(null); // Clear singleton state
     }
 
     @Test
-    public void testPublish() throws Exception {
+    public void testPublishWithException() throws Exception {
+
         CountDownLatch latch = new CountDownLatch(eventPublishers.size());
 
-        for (EventPublisher eventPublisher : eventPublishers) {
-            doAnswer(invocation -> {
-                latch.countDown();
-                return null;
-            }).when(eventPublisher).publish(mockEventPayload, mockEventContext);
-        }
+        doAnswer(invocation -> {
+            latch.countDown();
+            throw new RuntimeException("Test Exception");
+        }).when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
 
-        for (EventPublisher eventPublisher : eventPublishers) {
-            executorService.submit(() -> {
-                try {
-                    eventPublisher.publish(mockEventPayload, mockEventContext);
-                } catch (Exception e) {
-                    // Handle the exception appropriately
-                }
-            });
-        }
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(mockEventPublisher2).publish(mockEventPayload, mockEventContext);
 
-        latch.await(1, TimeUnit.SECONDS); // Wait for the asynchronous tasks to complete
+        eventPublisherService.publish(mockEventPayload, mockEventContext);
 
-        for (EventPublisher eventPublisher : eventPublishers) {
-            verify(eventPublisher, times(1)).publish(mockEventPayload, mockEventContext);
-        }
+        latch.await(1, TimeUnit.SECONDS);
+
+        verify(mockEventPublisher1, times(1)).publish(mockEventPayload, mockEventContext);
+        verify(mockEventPublisher2, times(1)).publish(mockEventPayload, mockEventContext);
+    }
+
+    @Test
+    public void testSuccessfulPublish() throws Exception {
+
+        CountDownLatch latch = new CountDownLatch(eventPublishers.size());
+
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(mockEventPublisher1).publish(mockEventPayload, mockEventContext);
+
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(mockEventPublisher2).publish(mockEventPayload, mockEventContext);
+
+        eventPublisherService.publish(mockEventPayload, mockEventContext);
+
+        latch.await(1, TimeUnit.SECONDS);
+
+        verify(mockEventPublisher1, times(1)).publish(mockEventPayload, mockEventContext);
+        verify(mockEventPublisher2, times(1)).publish(mockEventPayload, mockEventContext);
+    }
+
+    @Test
+    public void testPublishWithNoPublishers() throws Exception {
+
+        EventPublisherDataHolder.getInstance().setEventPublishers(Arrays.asList());
+
+        // Call the service method
+        eventPublisherService.publish(mockEventPayload, mockEventContext);
+
+        // Verify no interactions occurred with mock publishers
+        verifyNoInteractions(mockEventPublisher1, mockEventPublisher2);
+    }
+
+    @Test
+    public void testEventContextBuilder() {
+
+        EventContext eventContext = EventContext.builder()
+                .tenantDomain("example.com")
+                .eventUri("http://example.com/event")
+                .build();
+
+        Assert.assertEquals(eventContext.getTenantDomain(), "example.com");
+        Assert.assertEquals(eventContext.getEventUri(), "http://example.com/event");
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadBuilder() {
+
+        Map<String, EventPayload> eventMap = new HashMap<>();
+        eventMap.put("key1", new EventPayload() { });
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .event(eventMap)
+                .build();
+
+        Assert.assertEquals(payload.getIss(), "issuer");
+        Assert.assertEquals(payload.getJti(), "jti123");
+        Assert.assertEquals(payload.getIat(), 123456789L);
+        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getTxn(), "transaction");
+        Assert.assertEquals(payload.getRci(), "rci123");
+        Assert.assertNotNull(payload.getEvent());
+        Assert.assertEquals(payload.getEvent().get("key1"), eventMap.get("key1"));
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadWithNullEvent() {
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .event(null)
+                .build();
+
+        Assert.assertEquals(payload.getIss(), "issuer");
+        Assert.assertEquals(payload.getJti(), "jti123");
+        Assert.assertEquals(payload.getIat(), 123456789L);
+        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getTxn(), "transaction");
+        Assert.assertEquals(payload.getRci(), "rci123");
+        Assert.assertNull(payload.getEvent());
     }
 }

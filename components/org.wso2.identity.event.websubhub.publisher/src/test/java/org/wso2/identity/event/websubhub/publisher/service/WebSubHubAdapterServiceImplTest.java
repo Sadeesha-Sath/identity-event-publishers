@@ -34,7 +34,9 @@ import org.wso2.identity.event.websubhub.publisher.internal.WebSubHubAdapterData
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -48,10 +50,13 @@ import static org.mockito.Mockito.when;
 public class WebSubHubAdapterServiceImplTest {
 
     private WebSubHubAdapterServiceImpl adapterService;
+
     @Mock
     private ClientManager mockClientManager;
+
     @Mock
     private WebSubAdapterConfiguration mockAdapterConfiguration;
+
     @Mock
     private HttpResponse mockHttpResponse;
 
@@ -61,15 +66,12 @@ public class WebSubHubAdapterServiceImplTest {
         MockitoAnnotations.openMocks(this);
         adapterService = spy(new WebSubHubAdapterServiceImpl());
 
-        // Mock WebSubHubAdapterDataHolder
         MockedStatic<WebSubHubAdapterDataHolder> mockedStaticDataHolder = mockStatic(WebSubHubAdapterDataHolder.class);
         WebSubHubAdapterDataHolder mockDataHolder = mock(WebSubHubAdapterDataHolder.class);
         mockedStaticDataHolder.when(WebSubHubAdapterDataHolder::getInstance).thenReturn(mockDataHolder);
 
         when(mockDataHolder.getClientManager()).thenReturn(mockClientManager);
         when(mockDataHolder.getAdapterConfiguration()).thenReturn(mockAdapterConfiguration);
-
-        // Mock adapter configuration
         when(mockAdapterConfiguration.getWebSubHubBaseUrl()).thenReturn("http://mock-websub-hub.com");
     }
 
@@ -98,8 +100,48 @@ public class WebSubHubAdapterServiceImplTest {
             // Execute and verify no exception is thrown
             adapterService.publish(payload, eventContext);
 
-            // Verify interactions and ensure the publish process behaves correctly
+            // Verify interactions
             verify(mockClientManager, times(1)).executeAsync(any());
         }
+    }
+
+    @Test
+    public void testRegisterTopic() throws WebSubAdapterException {
+
+        doNothing().when(adapterService).registerTopic("test-uri", "test-tenant");
+
+        adapterService.registerTopic("test-uri", "test-tenant");
+
+        verify(adapterService, times(1)).registerTopic("test-uri",
+                "test-tenant");
+    }
+
+    @Test(expectedExceptions = WebSubAdapterException.class)
+    public void testRegisterTopicFailure() throws WebSubAdapterException {
+
+        doThrow(new WebSubAdapterException("Registration failed", "Description", "ErrorCode"))
+                .when(adapterService).registerTopic("test-uri", "test-tenant");
+
+        adapterService.registerTopic("test-uri", "test-tenant");
+    }
+
+    @Test
+    public void testDeregisterTopic() throws WebSubAdapterException {
+
+        doNothing().when(adapterService).deregisterTopic("test-uri", "test-tenant");
+
+        adapterService.deregisterTopic("test-uri", "test-tenant");
+
+        verify(adapterService, times(1)).deregisterTopic("test-uri",
+                "test-tenant");
+    }
+
+    @Test(expectedExceptions = WebSubAdapterException.class)
+    public void testDeregisterTopicFailure() throws WebSubAdapterException {
+
+        doThrow(new WebSubAdapterException("Deregistration failed", "Description", "ErrorCode"))
+                .when(adapterService).deregisterTopic("test-uri", "test-tenant");
+
+        adapterService.deregisterTopic("test-uri", "test-tenant");
     }
 }

@@ -21,6 +21,7 @@ package org.wso2.identity.event.websubhub.publisher.internal;
 import org.apache.http.client.methods.HttpPost;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.identity.event.websubhub.publisher.config.WebSubAdapterConfiguration;
@@ -36,11 +37,12 @@ import static org.mockito.Mockito.when;
 public class ClientManagerTest {
 
     private ClientManager clientManager;
+    MockedStatic<WebSubHubAdapterDataHolder> mockedStaticDataHolder;
 
     @BeforeClass
     public void setUp() throws WebSubAdapterException {
 
-        MockedStatic<WebSubHubAdapterDataHolder> mockedStaticDataHolder = mockStatic(WebSubHubAdapterDataHolder.class);
+        mockedStaticDataHolder = mockStatic(WebSubHubAdapterDataHolder.class);
         WebSubHubAdapterDataHolder mockDataHolder = mock(WebSubHubAdapterDataHolder.class);
         WebSubAdapterConfiguration mockConfiguration = mock(WebSubAdapterConfiguration.class);
 
@@ -77,5 +79,13 @@ public class ClientManagerTest {
 
         ClientManager clientManager = new ClientManager();
         clientManager.createHttpPost("http://mock-url.com", payload);
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        if (mockedStaticDataHolder != null) {
+            mockedStaticDataHolder.close();
+        }
     }
 }

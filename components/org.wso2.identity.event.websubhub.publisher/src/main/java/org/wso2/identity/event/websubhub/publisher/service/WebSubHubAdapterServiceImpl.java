@@ -29,6 +29,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.identity.event.common.publisher.EventPublisher;
 import org.wso2.identity.event.common.publisher.model.EventContext;
@@ -235,30 +236,47 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
     private static void handleAsyncResponse(HttpResponse response, HttpPost request, long requestStartTime,
                                              EventContext eventContext, String url, String topic) {
 
-        int responseCode = response.getStatusLine().getStatusCode();
-        String responsePhrase = response.getStatusLine().getReasonPhrase();
-        log.debug("WebSubHub request completed. Response code: " + responseCode);
-        handleResponseCorrelationLog(request, requestStartTime,
-                WebSubHubCorrelationLogUtils.RequestStatus.COMPLETED.getStatus(),
-                String.valueOf(responseCode), responsePhrase);
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(eventContext.getTenantDomain());
 
-        if (responseCode == HttpStatus.SC_OK || responseCode == HttpStatus.SC_CREATED ||
-                responseCode == HttpStatus.SC_ACCEPTED || responseCode == HttpStatus.SC_NO_CONTENT) {
-            logDiagnosticSuccess(eventContext, url, topic);
-            try {
-                log.debug("Response data: " + EntityUtils.toString(response.getEntity()));
-            } catch (IOException e) {
-                log.debug("Error while reading WebSubHub event publisher response. ", e);
+        try {
+            int responseCode = response.getStatusLine().getStatusCode();
+            String responsePhrase = response.getStatusLine().getReasonPhrase();
+            log.debug("WebSubHub request completed. Response code: " + responseCode);
+
+            handleResponseCorrelationLog(request, requestStartTime,
+                    WebSubHubCorrelationLogUtils.RequestStatus.COMPLETED.getStatus(),
+                    String.valueOf(responseCode), responsePhrase);
+
+            if (responseCode == HttpStatus.SC_OK || responseCode == HttpStatus.SC_CREATED ||
+                    responseCode == HttpStatus.SC_ACCEPTED || responseCode == HttpStatus.SC_NO_CONTENT) {
+                logDiagnosticSuccess(eventContext, url, topic);
+                try {
+                    if (response.getEntity() != null) {
+                        log.debug("Response data: " + EntityUtils.toString(response.getEntity()));
+                    } else {
+                        log.debug("Response entity is null.");
+                    }
+                } catch (IOException e) {
+                    log.debug("Error while reading WebSubHub event publisher response. ", e);
+                }
+            } else {
+                logDiagnosticFailure(eventContext, url, topic);
+                try {
+                    if (response.getEntity() != null) {
+                        String errorResponseBody = EntityUtils.toString(response.getEntity());
+                        log.error("WebHubSub event publisher received " + responseCode + " code. Response data: " +
+                                errorResponseBody);
+                    } else {
+                        log.error("WebHubSub event publisher received " + responseCode +
+                                  " code. Response entity is null.");
+                    }
+                } catch (IOException e) {
+                    log.error("Error while reading WebSubHub event publisher response. ", e);
+                }
             }
-        } else {
-            logDiagnosticFailure(eventContext, url, topic);
-            try {
-                String errorResponseBody = EntityUtils.toString(response.getEntity());
-                log.error("WebHubSub event publisher received " + responseCode + " code. Response data: " +
-                        errorResponseBody);
-            } catch (IOException e) {
-                log.error("Error while reading WebSubHub event publisher response. ", e);
-            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 

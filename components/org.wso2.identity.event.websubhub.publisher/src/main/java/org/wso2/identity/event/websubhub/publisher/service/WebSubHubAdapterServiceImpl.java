@@ -275,8 +275,6 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
                     log.error("Error while reading WebSubHub event publisher response. ", e);
                 }
             }
-        } catch (Exception e) {
-            log.error("Exception occurred in handleAsyncResponse", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }

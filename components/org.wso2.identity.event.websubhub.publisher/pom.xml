@@ -124,6 +124,7 @@
                             org.wso2.carbon.identity.application.authentication.framework.exception;
                             version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.core.util;
                             version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.json.simple.parser; version="${com.googlecode.json-simple.wso2.version.range}",

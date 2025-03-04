@@ -268,7 +268,8 @@ public class WebSubHubAdapterServiceImpl implements EventPublisher {
                         log.error("WebHubSub event publisher received " + responseCode + " code. Response data: " +
                                 errorResponseBody);
                     } else {
-                        log.error("WebHubSub event publisher received " + responseCode + " code. Response entity is null.");
+                        log.error("WebHubSub event publisher received " + responseCode +
+                                  " code. Response entity is null.");
                     }
                 } catch (IOException e) {
                     log.error("Error while reading WebSubHub event publisher response. ", e);

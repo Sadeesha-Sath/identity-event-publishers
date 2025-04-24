@@ -24,7 +24,7 @@ package org.wso2.identity.event.websubhub.publisher.constant;
 public class WebSubHubAdapterConstants {
 
     /**
-     * Configuration related constants
+     * Configuration related constants.
      */
     public static class Config {
         public static final String CONFIG_FILE_NAME = "identity-outbound-adapter.properties";
@@ -32,7 +32,7 @@ public class WebSubHubAdapterConstants {
     }
 
     /**
-    * WebSub Hub Adapter related constants
+    * WebSub Hub Adapter related constants.
     */
     public static class Http {
         public static final String TOPIC_SEPARATOR = "-";

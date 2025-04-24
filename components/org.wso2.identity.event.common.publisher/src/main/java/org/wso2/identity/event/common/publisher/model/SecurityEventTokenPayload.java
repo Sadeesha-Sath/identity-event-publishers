@@ -31,7 +31,7 @@ public class SecurityEventTokenPayload {
     private final String aud;
     private final String txn;
     private final String rci;
-    private final Map<String, EventPayload> event;
+    private final Map<String, EventPayload> events;
 
     private SecurityEventTokenPayload(Builder builder) {
 
@@ -41,7 +41,7 @@ public class SecurityEventTokenPayload {
         this.aud = builder.aud;
         this.txn = builder.txn;
         this.rci = builder.rci;
-        this.event = builder.event;
+        this.events = builder.events;
     }
 
     public String getIss() {
@@ -74,9 +74,9 @@ public class SecurityEventTokenPayload {
         return rci;
     }
 
-    public Map<String, EventPayload> getEvent() {
+    public Map<String, EventPayload> getEvents() {
 
-        return event;
+        return events;
     }
 
     public static Builder builder() {
@@ -95,7 +95,7 @@ public class SecurityEventTokenPayload {
         private String aud;
         private String txn;
         private String rci;
-        private Map<String, EventPayload> event;
+        private Map<String, EventPayload> events;
 
         public Builder iss(String iss) {
 
@@ -133,9 +133,9 @@ public class SecurityEventTokenPayload {
             return this;
         }
 
-        public Builder event(Map<String, EventPayload> event) {
+        public Builder events(Map<String, EventPayload> events) {
 
-            this.event = event;
+            this.events = events;
             return this;
         }
 

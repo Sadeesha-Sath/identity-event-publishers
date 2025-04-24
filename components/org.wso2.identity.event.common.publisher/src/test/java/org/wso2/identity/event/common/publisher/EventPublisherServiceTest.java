@@ -163,7 +163,7 @@ public class EventPublisherServiceTest {
                 .aud("audience")
                 .txn("transaction")
                 .rci("rci123")
-                .event(eventMap)
+                .events(eventMap)
                 .build();
 
         Assert.assertEquals(payload.getIss(), "issuer");
@@ -172,8 +172,8 @@ public class EventPublisherServiceTest {
         Assert.assertEquals(payload.getAud(), "audience");
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
-        Assert.assertNotNull(payload.getEvent());
-        Assert.assertEquals(payload.getEvent().get("key1"), eventMap.get("key1"));
+        Assert.assertNotNull(payload.getEvents());
+        Assert.assertEquals(payload.getEvents().get("key1"), eventMap.get("key1"));
     }
 
     @Test
@@ -186,7 +186,7 @@ public class EventPublisherServiceTest {
                 .aud("audience")
                 .txn("transaction")
                 .rci("rci123")
-                .event(null)
+                .events(null)
                 .build();
 
         Assert.assertEquals(payload.getIss(), "issuer");
@@ -195,6 +195,6 @@ public class EventPublisherServiceTest {
         Assert.assertEquals(payload.getAud(), "audience");
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
-        Assert.assertNull(payload.getEvent());
+        Assert.assertNull(payload.getEvents());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,11 +18,16 @@
 
 package org.wso2.identity.event.common.publisher.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.wso2.identity.event.common.publisher.model.common.Subject;
+
 import java.util.Map;
 
 /**
  * Model class for Security Event Token Payload.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SecurityEventTokenPayload {
 
     private final String iss;
@@ -31,6 +36,10 @@ public class SecurityEventTokenPayload {
     private final String aud;
     private final String txn;
     private final String rci;
+
+    @JsonProperty("sub_id")
+    private final Subject subId;
+
     private final Map<String, EventPayload> events;
 
     private SecurityEventTokenPayload(Builder builder) {
@@ -41,6 +50,7 @@ public class SecurityEventTokenPayload {
         this.aud = builder.aud;
         this.txn = builder.txn;
         this.rci = builder.rci;
+        this.subId = builder.subId;
         this.events = builder.events;
     }
 
@@ -79,6 +89,11 @@ public class SecurityEventTokenPayload {
         return events;
     }
 
+    public Subject getSubId() {
+
+        return subId;
+    }
+
     public static Builder builder() {
 
         return new Builder();
@@ -95,6 +110,7 @@ public class SecurityEventTokenPayload {
         private String aud;
         private String txn;
         private String rci;
+        private Subject subId;
         private Map<String, EventPayload> events;
 
         public Builder iss(String iss) {
@@ -136,6 +152,12 @@ public class SecurityEventTokenPayload {
         public Builder events(Map<String, EventPayload> events) {
 
             this.events = events;
+            return this;
+        }
+
+        public Builder subId(Subject subId) {
+
+            this.subId = subId;
             return this;
         }
 

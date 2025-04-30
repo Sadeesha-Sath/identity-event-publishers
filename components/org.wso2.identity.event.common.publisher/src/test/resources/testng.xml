@@ -18,9 +18,10 @@
 
 <suite name="EventPublisherServiceTestSuite">
 
-    <test name="EventPublisherServiceTest" preserve-order="true" parallel="false">
+    <test name="EventPublisherServiceTest" parallel="false">
         <classes>
             <class name="org.wso2.identity.event.common.publisher.EventPublisherServiceTest"/>
+            <class name="org.wso2.identity.event.common.publisher.SubjectModelTest"/>
         </classes>
     </test>
 </suite>

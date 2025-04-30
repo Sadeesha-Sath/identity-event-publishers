@@ -29,8 +29,11 @@ import org.wso2.identity.event.common.publisher.internal.EventPublisherDataHolde
 import org.wso2.identity.event.common.publisher.model.EventContext;
 import org.wso2.identity.event.common.publisher.model.EventPayload;
 import org.wso2.identity.event.common.publisher.model.SecurityEventTokenPayload;
+import org.wso2.identity.event.common.publisher.model.common.SimpleSubject;
+import org.wso2.identity.event.common.publisher.model.common.Subject;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,9 +130,9 @@ public class EventPublisherServiceTest {
     }
 
     @Test
-    public void testPublishWithNoPublishers() throws Exception {
+    public void testPublishWithNoPublishers() {
 
-        EventPublisherDataHolder.getInstance().setEventPublishers(Arrays.asList());
+        EventPublisherDataHolder.getInstance().setEventPublishers(Collections.emptyList());
 
         // Call the service method
         eventPublisherService.publish(mockEventPayload, mockEventContext);
@@ -154,7 +157,8 @@ public class EventPublisherServiceTest {
     public void testSecurityEventTokenPayloadBuilder() {
 
         Map<String, EventPayload> eventMap = new HashMap<>();
-        eventMap.put("key1", new EventPayload() { });
+        eventMap.put("key1", new EventPayload() {
+        });
 
         SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
                 .iss("issuer")
@@ -196,5 +200,141 @@ public class EventPublisherServiceTest {
         Assert.assertEquals(payload.getTxn(), "transaction");
         Assert.assertEquals(payload.getRci(), "rci123");
         Assert.assertNull(payload.getEvents());
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadWithEmptyEvent() {
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .events(new HashMap<>())
+                .build();
+
+        Assert.assertEquals(payload.getIss(), "issuer");
+        Assert.assertEquals(payload.getJti(), "jti123");
+        Assert.assertEquals(payload.getIat(), 123456789L);
+        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getTxn(), "transaction");
+        Assert.assertEquals(payload.getRci(), "rci123");
+        Assert.assertNotNull(payload.getEvents());
+        Assert.assertTrue(payload.getEvents().isEmpty());
+    }
+
+    @Test
+    public void testEventPublisherServiceWithEmptyPublishers() {
+
+        EventPublisherDataHolder.getInstance().setEventPublishers(Collections.emptyList());
+
+        // Call the service method
+        eventPublisherService.publish(mockEventPayload, mockEventContext);
+
+        // Verify no interactions occurred with mock publishers
+        verifyNoInteractions(mockEventPublisher1, mockEventPublisher2);
+    }
+
+    @Test
+    public void testEventPublisherServiceWithNullPayload() {
+
+        // Call the service method with null payload
+        eventPublisherService.publish(null, mockEventContext);
+
+        // Verify no interactions occurred with mock publishers
+        verifyNoInteractions(mockEventPublisher1, mockEventPublisher2);
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadWithSubId() {
+
+        Map<String, EventPayload> eventMap = new HashMap<>();
+        eventMap.put("key1", new EventPayload() {
+        });
+
+        Subject subId = SimpleSubject.createOpaqueSubject("subId123");
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .subId(subId)
+                .events(eventMap)
+                .build();
+
+        Assert.assertEquals(payload.getIss(), "issuer");
+        Assert.assertEquals(payload.getJti(), "jti123");
+        Assert.assertEquals(payload.getIat(), 123456789L);
+        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getTxn(), "transaction");
+        Assert.assertEquals(payload.getRci(), "rci123");
+        Assert.assertEquals(payload.getSubId(), subId);
+        Assert.assertNotNull(payload.getEvents());
+        Assert.assertEquals(payload.getEvents().get("key1"), eventMap.get("key1"));
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadWithNullSubId() {
+
+        Map<String, EventPayload> eventMap = new HashMap<>();
+        eventMap.put("key1", new EventPayload() {
+        });
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .subId(null)
+                .events(eventMap)
+                .build();
+
+        Assert.assertEquals(payload.getIss(), "issuer");
+        Assert.assertEquals(payload.getJti(), "jti123");
+        Assert.assertEquals(payload.getIat(), 123456789L);
+        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getTxn(), "transaction");
+        Assert.assertEquals(payload.getRci(), "rci123");
+        Assert.assertNull(payload.getSubId());
+        Assert.assertNotNull(payload.getEvents());
+        Assert.assertEquals(payload.getEvents().get("key1"), eventMap.get("key1"));
+    }
+
+    @Test
+    public void testSecurityEventTokenPayloadWithEmptySubId() {
+
+        Map<String, EventPayload> eventMap = new HashMap<>();
+        eventMap.put("key1", new EventPayload() {
+        });
+
+        Subject subId = SimpleSubject.createOpaqueSubject("");
+
+        SecurityEventTokenPayload payload = SecurityEventTokenPayload.builder()
+                .iss("issuer")
+                .jti("jti123")
+                .iat(123456789L)
+                .aud("audience")
+                .txn("transaction")
+                .rci("rci123")
+                .subId(subId)
+                .events(eventMap)
+                .build();
+
+        Assert.assertEquals(payload.getIss(), "issuer");
+        Assert.assertEquals(payload.getJti(), "jti123");
+        Assert.assertEquals(payload.getIat(), 123456789L);
+        Assert.assertEquals(payload.getAud(), "audience");
+        Assert.assertEquals(payload.getTxn(), "transaction");
+        Assert.assertEquals(payload.getRci(), "rci123");
+        Assert.assertEquals(payload.getSubId(), subId);
+        Assert.assertNotNull(payload.getEvents());
+        Assert.assertEquals(payload.getEvents().get("key1"), eventMap.get("key1"));
     }
 }

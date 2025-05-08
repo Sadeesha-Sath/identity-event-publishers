@@ -18,6 +18,8 @@
 
 package org.wso2.identity.event.common.publisher.model.common;
 
+import java.util.List;
+
 /**
  * Model Class Implementation for SimpleSubject.
  */
@@ -33,6 +35,8 @@ public class SimpleSubject extends Subject {
     private static final String DID = "did";
     private static final String ISS = "iss";
     private static final String SUB = "sub";
+    private static final String ALIASES = "aliases";
+    private static final String IDENTIFIERS = "identifiers";
 
     private static boolean isInvalidValue(String value) {
 
@@ -122,4 +126,14 @@ public class SimpleSubject extends Subject {
         return subject;
     }
 
+    public static SimpleSubject createAliasesSubject(List<SimpleSubject> identifiers) {
+
+        if (identifiers == null || identifiers.isEmpty()) {
+            return null;
+        }
+        SimpleSubject subject = new SimpleSubject();
+        subject.setFormat(ALIASES);
+        subject.addProperty(IDENTIFIERS, identifiers);
+        return subject;
+    }
 }

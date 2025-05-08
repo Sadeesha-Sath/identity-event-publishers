@@ -18,11 +18,13 @@
 
 package org.wso2.identity.event.common.publisher;
 
-import org.mockito.Mock;
 import org.testng.annotations.Test;
 import org.wso2.identity.event.common.publisher.model.common.ComplexSubject;
 import org.wso2.identity.event.common.publisher.model.common.SimpleSubject;
 import org.wso2.identity.event.common.publisher.model.common.Subject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -33,18 +35,12 @@ import static org.testng.Assert.assertNull;
  */
 public class SubjectModelTest {
 
-    @Mock
-    private SimpleSubject simpleSubject1;
-    @Mock
-    private SimpleSubject simpleSubject2;
-    @Mock
-    private SimpleSubject simpleSubject3;
-    @Mock
-    private SimpleSubject simpleSubject4;
-    @Mock
-    private SimpleSubject simpleSubject5;
-    @Mock
-    private SimpleSubject simpleSubject6;
+    private SimpleSubject simpleSubject1 = SimpleSubject.createAccountSubject("test");
+    private SimpleSubject simpleSubject2 = SimpleSubject.createOpaqueSubject("test");
+    private SimpleSubject simpleSubject3 = SimpleSubject.createURISubject("test");
+    private SimpleSubject simpleSubject4 = SimpleSubject.createAccountSubject("test");
+    private SimpleSubject simpleSubject5 = SimpleSubject.createAccountSubject("test");
+    private SimpleSubject simpleSubject6 = SimpleSubject.createAccountSubject("test");
 
     @Test
     public void testSimpleSubjectAccount() {
@@ -119,32 +115,6 @@ public class SubjectModelTest {
     }
 
     @Test
-    public void testComplexSubjectTenant() {
-
-        ComplexSubject subject = ComplexSubject.builder()
-                .tenant(simpleSubject1)
-                .user(simpleSubject2)
-                .session(simpleSubject3)
-                .application(simpleSubject4)
-                .group(simpleSubject5)
-                .organization(simpleSubject6)
-                .build();
-
-        assertNotNull(subject);
-
-        assertEquals(subject.getFormat(), "complex");
-        assertNotNull(subject.getProperties());
-
-        assertEquals(simpleSubject1, subject.getProperty("tenant"));
-        assertEquals(simpleSubject2, subject.getProperty("user"));
-        assertEquals(simpleSubject3, subject.getProperty("session"));
-        assertEquals(simpleSubject4, subject.getProperty("application"));
-        assertEquals(simpleSubject5, subject.getProperty("group"));
-        assertEquals(simpleSubject6, subject.getProperty("organization"));
-
-    }
-
-    @Test
     public void testComplexSubjectTenantWithNullProperty() {
 
         ComplexSubject subject = ComplexSubject.builder()
@@ -166,8 +136,45 @@ public class SubjectModelTest {
         assertNull(subject.getProperty("session"));
         assertNull(subject.getProperty("application"));
         assertNull(subject.getProperty("group"));
-        assertNull(subject.getProperty("organization"));
-
+        assertNull(subject.getProperty("org_unit"));
     }
 
+    @Test
+    public void testComplexSubjectTenant() {
+
+        ComplexSubject subject = ComplexSubject.builder()
+                .tenant(simpleSubject1)
+                .user(simpleSubject2)
+                .session(simpleSubject3)
+                .application(simpleSubject4)
+                .group(simpleSubject5)
+                .organization(simpleSubject6)
+                .build();
+
+        assertNotNull(subject);
+
+        assertEquals(subject.getFormat(), "complex");
+        assertNotNull(subject.getProperties());
+
+        assertEquals(simpleSubject1, subject.getProperty("tenant"));
+        assertEquals(simpleSubject2, subject.getProperty("user"));
+        assertEquals(simpleSubject3, subject.getProperty("session"));
+        assertEquals(simpleSubject4, subject.getProperty("application"));
+        assertEquals(simpleSubject5, subject.getProperty("group"));
+        assertEquals(simpleSubject6, subject.getProperty("org_unit"));
+    }
+
+    @Test
+    public void testSimpleSubjectAliases() {
+
+        List<SimpleSubject> subjectList = new ArrayList<>();
+        subjectList.add(simpleSubject1);
+        subjectList.add(simpleSubject2);
+        SimpleSubject subject = SimpleSubject.createAliasesSubject(subjectList);
+
+        assertNotNull(subject);
+        assertEquals(subject.getFormat(), "aliases");
+        assertNotNull(subject.getProperties());
+        assertEquals(subject.getProperty("identifiers"), subjectList);
+    }
 }

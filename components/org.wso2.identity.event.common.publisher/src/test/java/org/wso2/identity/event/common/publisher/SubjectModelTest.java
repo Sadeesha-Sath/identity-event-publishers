@@ -29,6 +29,8 @@ import java.util.List;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
 /*
     Test Class for Subject, SimpleSubject and ComplexSubject Classes
@@ -176,5 +178,36 @@ public class SubjectModelTest {
         assertEquals(subject.getFormat(), "aliases");
         assertNotNull(subject.getProperties());
         assertEquals(subject.getProperty("identifiers"), subjectList);
+    }
+
+    @Test
+    public void testSimpleSubjectAliasesException() {
+
+        List<SimpleSubject> subjectList1 = new ArrayList<>();
+        subjectList1.add(simpleSubject1);
+        SimpleSubject simpleSubjectAlias = SimpleSubject.createAliasesSubject(subjectList1);
+        List<SimpleSubject> subjectList2 = new ArrayList<>();
+        subjectList2.add(simpleSubjectAlias);
+        subjectList2.add(simpleSubject2);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            SimpleSubject.createAliasesSubject(subjectList2);
+        });
+    }
+
+    @Test
+    public void testSimpleSubjectAliasesDuplicate() {
+
+        List<SimpleSubject> subjectList = new ArrayList<>();
+        subjectList.add(simpleSubject1);
+        subjectList.add(simpleSubject2);
+        subjectList.add(simpleSubject1);
+        SimpleSubject subject = SimpleSubject.createAliasesSubject(subjectList);
+
+        assertNotNull(subject);
+        assertEquals(subject.getFormat(), "aliases");
+        assertNotNull(subject.getProperties());
+        assertTrue(subject.getProperty("identifiers") instanceof List);
+        assertEquals(((List<SimpleSubject>) subject.getProperty("identifiers")).size(), 2);
     }
 }

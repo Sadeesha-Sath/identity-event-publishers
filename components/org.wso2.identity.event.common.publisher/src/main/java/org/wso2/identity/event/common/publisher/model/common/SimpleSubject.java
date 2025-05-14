@@ -18,7 +18,9 @@
 
 package org.wso2.identity.event.common.publisher.model.common;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Model Class Implementation for SimpleSubject.
@@ -131,6 +133,16 @@ public class SimpleSubject extends Subject {
         if (identifiers == null || identifiers.isEmpty()) {
             return null;
         }
+        for (SimpleSubject identifier : identifiers) {
+            if (identifier.getFormat().equals(ALIASES)) {
+                throw new IllegalArgumentException("Identifier format cannot be " + ALIASES);
+            }
+        }
+        // Remove duplicates
+        Set<SimpleSubject> uniqueIdentifiers = new HashSet<>(identifiers);
+        identifiers.clear();
+        identifiers.addAll(uniqueIdentifiers);
+
         SimpleSubject subject = new SimpleSubject();
         subject.setFormat(ALIASES);
         subject.addProperty(IDENTIFIERS, identifiers);

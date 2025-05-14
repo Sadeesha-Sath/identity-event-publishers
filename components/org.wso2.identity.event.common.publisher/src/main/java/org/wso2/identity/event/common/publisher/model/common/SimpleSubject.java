@@ -18,6 +18,9 @@
 
 package org.wso2.identity.event.common.publisher.model.common;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +45,7 @@ public class SimpleSubject extends Subject {
 
     private static boolean isInvalidValue(String value) {
 
-        return (value == null || value.isEmpty());
+        return (StringUtils.isEmpty(value.trim()));
     }
 
     private SimpleSubject() {
@@ -130,7 +133,7 @@ public class SimpleSubject extends Subject {
 
     public static SimpleSubject createAliasesSubject(List<SimpleSubject> identifiers) {
 
-        if (identifiers == null || identifiers.isEmpty()) {
+        if (CollectionUtils.isEmpty(identifiers)) {
             return null;
         }
         for (SimpleSubject identifier : identifiers) {
@@ -138,6 +141,7 @@ public class SimpleSubject extends Subject {
                 throw new IllegalArgumentException("Identifier format cannot be " + ALIASES);
             }
         }
+
         // Remove duplicates
         Set<SimpleSubject> uniqueIdentifiers = new HashSet<>(identifiers);
         identifiers.clear();

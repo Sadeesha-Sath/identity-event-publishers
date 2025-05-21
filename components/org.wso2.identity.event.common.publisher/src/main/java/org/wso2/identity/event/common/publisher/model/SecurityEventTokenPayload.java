@@ -18,8 +18,6 @@
 
 package org.wso2.identity.event.common.publisher.model;
 
-import org.wso2.identity.event.common.publisher.model.common.Subject;
-
 import java.util.Map;
 
 /**
